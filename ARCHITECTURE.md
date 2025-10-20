@@ -33,14 +33,19 @@ graph TD
     R --> T[JSON Report]
     R --> U[SARIF Report]
     
-    Q --> V{High Risk Found?}
-    V -->|Yes| W[Send Email Alert]
+    Q --> V{Email Enabled?}
+    V -->|Yes| W[Generate Extended Email]
     V -->|No| X[Log Summary]
+    
+    W --> W1[Create Test Logs]
+    W1 --> W2[Generate HTML Email]
+    W2 --> W3[Generate Text Email]
+    W3 --> W4[Send Email Alert]
     
     S --> Y[Save to File]
     T --> Y
     U --> Y
-    W --> Y
+    W4 --> Y
     X --> Y
     Y --> Z[Scan Complete]
 ```
@@ -215,6 +220,124 @@ class LoggingObserver:
 class MetricsObserver:
     def notify(self, event: SecurityEvent) -> None:
         self.update_security_metrics(event)
+```
+
+### Extended Email Notification System
+
+The email system has been significantly enhanced with comprehensive test logging and professional reporting capabilities:
+
+```python
+class ExtendedEmailNotifier:
+    """Enhanced email notification system with detailed test logs"""
+    
+    def __init__(self, email_config: dict):
+        self.config = email_config
+        self.template_engine = EmailTemplateEngine()
+    
+    def send_security_alert(self, scan_result: dict) -> bool:
+        """Send comprehensive security alert with test logs"""
+        
+        # Generate extended HTML email with test logs
+        html_content = self._generate_extended_alert_html(scan_result)
+        text_content = self._generate_extended_alert_text(scan_result)
+        
+        message = self._create_multipart_message(html_content, text_content)
+        return self._send_email(message)
+    
+    def _generate_test_logs(self, scan_result: dict) -> dict:
+        """Generate comprehensive test logs per repository"""
+        
+        test_categories = {
+            'filename_analysis': self._analyze_filenames(scan_result),
+            'content_security': self._analyze_content_security(scan_result),
+            'personal_data': self._analyze_personal_data(scan_result),
+            'medical_financial': self._analyze_medical_financial(scan_result),
+            'code_quality': self._analyze_code_quality(scan_result)
+        }
+        
+        return {
+            'categories': test_categories,
+            'statistics': self._calculate_scan_statistics(scan_result),
+            'recommendations': self._generate_recommendations(scan_result)
+        }
+
+class EmailTemplateEngine:
+    """Professional email template system with modern HTML/CSS"""
+    
+    def render_security_alert(self, scan_result: dict, test_logs: dict) -> str:
+        """Render professional HTML email template"""
+        
+        template = self._load_template('security_alert.html')
+        
+        context = {
+            'repository': scan_result['repository'],
+            'risk_level': scan_result['risk_level'],
+            'test_categories': test_logs['categories'],
+            'statistics': test_logs['statistics'],
+            'status_indicators': self._generate_status_indicators(test_logs),
+            'css_styles': self._load_css_styles()
+        }
+        
+        return template.render(context)
+    
+    def _generate_status_indicators(self, test_logs: dict) -> dict:
+        """Generate visual status indicators for each test"""
+        
+        indicators = {}
+        for category, results in test_logs['categories'].items():
+            indicators[category] = []
+            
+            for test_name, status in results.items():
+                icon = {
+                    'PASSED': '✅',
+                    'FAILED': '❌', 
+                    'WARNING': '⚠️',
+                    'INFO': 'ℹ️'
+                }.get(status, '❓')
+                
+                indicators[category].append({
+                    'name': test_name,
+                    'status': status,
+                    'icon': icon,
+                    'css_class': f'test-{status.lower()}'
+                })
+        
+        return indicators
+```
+
+#### Email Template Structure:
+
+```html
+<!-- Professional Email Template with Extended Test Logs -->
+<html>
+<head>
+    <style>
+        /* Modern CSS styling for professional appearance */
+        .container { max-width: 900px; margin: 0 auto; }
+        .header { background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%); }
+        .test-category { background: #f8f9fa; border-radius: 8px; }
+        .test-passed { background: #d4edda; border-left: 4px solid #28a745; }
+        .test-failed { background: #f8d7da; border-left: 4px solid #dc3545; }
+        .scan-summary { background: #e9ecef; padding: 20px; }
+    </style>
+</head>
+<body>
+    <!-- Repository header with risk level -->
+    <div class="header">...</div>
+    
+    <!-- Detailed test logs per category -->
+    <div class="test-categories">
+        <!-- 🔍 Filename Analysis -->
+        <!-- 🔐 Content Security -->  
+        <!-- 👤 Personal Data Detection -->
+        <!-- 🏥 Medical/Financial Data -->
+        <!-- ⚡ Code Quality Checks -->
+    </div>
+    
+    <!-- Comprehensive scan statistics -->
+    <div class="scan-summary">...</div>
+</body>
+</html>
 ```
 
 ### 3. Factory Pattern - Report Generation

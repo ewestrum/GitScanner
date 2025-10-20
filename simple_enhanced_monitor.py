@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 from config_manager import ConfigManager
 from github_client import GitHubClient
-from email_notifier import EmailNotifier
+from email_notifier_extended import EmailNotifier
 
 # Configure logging
 logging.basicConfig(
@@ -94,8 +94,8 @@ class SimpleEnhancedMonitor:
                 logger.info(f"Scanning repository: {repo_name}")
                 
                 try:
-                    # Get repository contents
-                    files = self.github_client.get_repository_contents(repo_name)
+                    # Get repository contents (top-level only for speed)
+                    files = self._get_repository_files_fast(repo_name)
                     
                     repo_results = {
                         'repository': repo,
@@ -137,6 +137,11 @@ class SimpleEnhancedMonitor:
                     high_risk = sum(1 for issue in repo_results['issues'] 
                                   if issue.get('risk_score', 0) >= 75)
                     self.scan_stats['high_risk_issues'] += high_risk
+                    
+                    logger.info(f"Repository {repo_name} scan completed: {len(repo_results['issues'])} issues found")
+                    
+                    # Add delay between repositories to respect rate limits
+                    time.sleep(1.0)
                     
                 except Exception as e:
                     logger.error(f"Error scanning repository {repo_name}: {e}")
@@ -198,6 +203,61 @@ class SimpleEnhancedMonitor:
             return "Configuration file potentially containing credentials"
         else:
             return "Potentially sensitive file"
+    
+    def _get_repository_files_fast(self, repo_name: str) -> List[Dict[str, Any]]:
+        """Get repository files efficiently with rate limiting"""
+        import time
+        
+        try:
+            # Only get top-level directory to avoid deep recursion
+            api_url = f"https://api.github.com/repos/{repo_name}/contents"
+            
+            # Use the GitHub client's request method with built-in rate limiting
+            response = self.github_client._make_request(api_url)
+            
+            if not response:
+                return []
+            
+            files = []
+            for item in response:
+                if item['type'] == 'file':
+                    files.append({
+                        'name': item['name'],
+                        'path': item['path'],
+                        'size': item.get('size', 0),
+                        'type': 'file'
+                    })
+                elif item['type'] == 'dir':
+                    # Only scan common important directories
+                    if item['name'].lower() in ['.github', 'config', 'configs', 'secrets', 'env']:
+                        logger.info(f"Scanning important directory: {item['name']}")
+                        
+                        # Add small delay to respect rate limits
+                        time.sleep(0.5)
+                        
+                        try:
+                            subdir_url = f"https://api.github.com/repos/{repo_name}/contents/{item['path']}"
+                            subdir_response = self.github_client._make_request(subdir_url)
+                            
+                            if subdir_response:
+                                for subitem in subdir_response:
+                                    if subitem['type'] == 'file':
+                                        files.append({
+                                            'name': subitem['name'],
+                                            'path': subitem['path'],
+                                            'size': subitem.get('size', 0),
+                                            'type': 'file'
+                                        })
+                        except Exception as e:
+                            logger.warning(f"Error scanning subdirectory {item['name']}: {e}")
+                            continue
+            
+            logger.info(f"Found {len(files)} files in {repo_name}")
+            return files
+            
+        except Exception as e:
+            logger.error(f"Error getting repository files for {repo_name}: {e}")
+            return []
     
     def _generate_summary(self, results: Dict[str, Any]) -> Dict[str, Any]:
         """Generate scan summary"""
@@ -361,19 +421,48 @@ REPOSITORY DETAILS
             logger.info("Email notifications not configured")
             return False
         
+        # Check if there are any issues to report
+        summary = scan_results.get('summary', {})
+        total_issues = summary.get('total_issues', 0)
+        
+        if total_issues == 0:
+            logger.info("No security issues found, skipping email notification")
+            return True
+        
         try:
-            # Generate report
-            report_html = self.generate_report(scan_results, 'html')
+            # Send notifications for each repository with issues
+            success_count = 0
+            total_notifications = 0
             
-            # Send email
-            success = self.email_notifier.send_summary_report([scan_results])
+            for repo_name, repo_data in scan_results.get('results', {}).items():
+                if 'error' in repo_data:
+                    continue
+                    
+                issues = repo_data.get('issues', [])
+                if len(issues) > 0:
+                    total_notifications += 1
+                    
+                    # Create repository alert data structure
+                    alert_data = {
+                        'repository': repo_data['repository'],
+                        'suspicious_files': repo_data.get('suspicious_files', []),
+                        'issues': issues,
+                        'scan_time': time.strftime('%Y-%m-%d %H:%M:%S'),
+                        'scan_summary': {
+                            'files_scanned': repo_data.get('files_scanned', 0),
+                            'issues_found': len(issues),
+                            'high_risk_issues': sum(1 for issue in issues if issue.get('risk_score', 0) >= 75)
+                        }
+                    }
+                    
+                    if self.email_notifier.send_security_alert(alert_data):
+                        success_count += 1
+                        logger.info(f"Email sent for repository: {repo_name}")
+                    else:
+                        logger.error(f"Failed to send email for repository: {repo_name}")
             
-            if success:
-                logger.info("Email notification sent successfully")
-            else:
-                logger.error("Failed to send email notification")
-                
-            return success
+            logger.info(f"Email notifications: {success_count}/{total_notifications} sent successfully")
+            return success_count > 0
             
         except Exception as e:
             logger.error(f"Error sending notifications: {e}")
