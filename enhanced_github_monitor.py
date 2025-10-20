@@ -24,7 +24,7 @@ from risk_scoring_engine import RiskScoringEngine, create_default_scoring_config
 from output_formatters import ReportGenerator
 from performance_optimizer import PerformanceOptimizer, create_default_performance_config
 from advanced_config_manager import AdvancedConfigManager
-from email_notifier import EmailNotifier
+from email_notifier_extended import EmailNotifier
 
 logger = logging.getLogger(__name__)
 
@@ -156,7 +156,7 @@ class EnhancedGitHubMonitor:
         
         try:
             # Get repositories
-            repositories = self.github_client.get_repositories()
+            repositories = self.github_client.get_user_repositories()
             
             if repository_filter:
                 repositories = [
@@ -263,6 +263,9 @@ class EnhancedGitHubMonitor:
             # Apply risk scoring
             risk_assessment = self.risk_scoring_engine.calculate_repository_risk_score(all_findings)
             
+            # Extract findings with fallback
+            findings = risk_assessment.get('scored_findings', all_findings)
+            
             # Clean up temporary files
             self.github_client.cleanup_temp_files()
             
@@ -276,13 +279,13 @@ class EnhancedGitHubMonitor:
                 'default_branch': repo.get('default_branch', 'main'),
                 'scan_duration': scan_duration,
                 'files_scanned': file_scan_results['files_scanned'],
-                'findings': risk_assessment['scored_findings'],
+                'findings': findings,
                 'risk_assessment': {
-                    'overall_score': risk_assessment['overall_score'],
-                    'risk_level': risk_assessment['risk_level'],
-                    'risk_distribution': risk_assessment['risk_distribution'],
-                    'max_individual_score': risk_assessment['max_individual_score'],
-                    'average_score': risk_assessment['average_score']
+                    'overall_score': risk_assessment.get('overall_score', 0.0),
+                    'risk_level': risk_assessment.get('risk_level', 'INFO'),
+                    'risk_distribution': risk_assessment.get('risk_distribution', {}),
+                    'max_individual_score': risk_assessment.get('max_individual_score', 0.0),
+                    'average_score': risk_assessment.get('average_score', 0.0)
                 },
                 'file_analysis': file_scan_results.get('file_analysis', {}),
                 'git_history': git_history_results,
