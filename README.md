@@ -1,4 +1,4 @@
-# GitScanner 🔍
+# GitScanner
 
 A comprehensive GitHub repository security monitoring tool that scans for sensitive files, credentials, and potential data leaks across your GitHub repositories.
 
@@ -6,30 +6,30 @@ A comprehensive GitHub repository security monitoring tool that scans for sensit
 ![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-## � Features
+## Features
 
 ### Core Functionality
-- **Multi-Repository Scanning**: Automatically scans all accessible GitHub repositories
-- **Intelligent File Detection**: Identifies suspicious files based on names and patterns
-- **Beautiful HTML Reports**: Generates professional security reports with severity ratings
-- **Email Notifications**: Sends security alerts via email with detailed findings
-- **Real-time Monitoring**: Configurable scanning intervals for continuous security monitoring
+- Multi-repository scanning across all accessible GitHub repositories
+- File analysis based on names and known suspicious patterns
+- HTML report generation with severity classifications
+- Email notifications for security findings
+- Configurable scanning intervals
 
 ### Security Detection
-- **Sensitive Files**: Detects `.env`, `.secret`, credentials files, private keys
-- **Configuration Files**: Identifies `config.json`, `secrets.json`, database configs
-- **Certificate Files**: Finds `.pem`, `.p12`, `.pfx`, SSH keys (`id_rsa`, etc.)
-- **Risk Scoring**: Assigns risk levels (LOW, MEDIUM, HIGH, CRITICAL) to findings
+- Sensitive files: .env, .secret, credentials files, private keys
+- Configuration files: config.json, secrets.json, database configs
+- Certificate files: .pem, .p12, .pfx, SSH keys (id_rsa, etc.)
+- Risk scoring with LOW, MEDIUM, HIGH, CRITICAL levels
 
 ### Advanced Features (Enhanced Version)
-- **MIME Type Detection**: Advanced file classification with fallback support
-- **Entropy Analysis**: Detects high-entropy strings that may contain secrets
-- **Git History Scanning**: Deep analysis of commit history for leaked credentials
-- **Pattern Recognition**: Deterministic regex rules for AWS keys, JWT tokens, API keys
-- **Multiple Output Formats**: JSON, SARIF (Static Analysis Results Interchange Format)
-- **Performance Optimization**: Smart filtering and parallel processing
+- MIME type detection with fallback support
+- Entropy analysis for detecting potential secrets
+- Git history scanning for leaked credentials
+- Pattern recognition for AWS keys, JWT tokens, API keys
+- JSON and SARIF output formats
+- Performance optimization with smart filtering
 
-## 📦 Installation
+## Installation
 
 ### Prerequisites
 - Python 3.8 or higher
@@ -38,29 +38,29 @@ A comprehensive GitHub repository security monitoring tool that scans for sensit
 
 ### Quick Setup
 
-1. **Clone the repository**
+1. Clone the repository
    ```bash
    git clone https://github.com/ewestrum/GitScanner.git
    cd GitScanner
    ```
 
-2. **Install dependencies**
+2. Install dependencies
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **Configure environment**
+3. Configure environment
    ```bash
    cp .env.example .env
    # Edit .env with your actual credentials (see Configuration section)
    ```
 
-4. **Run your first scan**
+4. Run your first scan
    ```bash
    python simple_enhanced_monitor.py
    ```
 
-## ⚙️ Configuration
+## Configuration
 
 ### GitHub Access Token
 
@@ -104,14 +104,14 @@ ALERT_HIGH=true
 ALERT_MEDIUM=false
 ```
 
-## 📖 Documentation
+## Documentation
 
 - **[User Guide](README.md)** - Installation, configuration, and usage
 - **[Technical Documentation](TECHNICAL_DOCS.md)** - Complete technical reference with data flow diagrams
 - **[Architecture Guide](ARCHITECTURE.md)** - Advanced architecture and design patterns
 - **[Enhanced Features](README_Enhanced.md)** - Enterprise features documentation
 
-## 🏃‍♂️ Usage
+## Usage
 
 ### Basic Usage
 
@@ -139,7 +139,7 @@ python simple_enhanced_monitor.py --repo owner/repo-name
 python enhanced_github_monitor.py --output json
 ```
 
-## 📊 Output Examples
+## Output Examples
 
 ### HTML Report
 - Professional dashboard with severity color coding
@@ -168,7 +168,7 @@ python enhanced_github_monitor.py --output json
 }
 ```
 
-## 🔧 Architecture
+## Architecture
 
 ### Core Components
 
@@ -200,7 +200,7 @@ Enhanced Components:
 6. **Report Generation**: Create HTML/JSON/SARIF outputs
 7. **Notification**: Send email alerts for high-risk findings
 
-## 🚨 Detected Security Issues
+## Detected Security Issues
 
 ### File-Based Detection
 - Environment files (`.env`, `.secret`)
@@ -222,23 +222,23 @@ Enhanced Components:
 - Deleted sensitive files still in history
 - Credential rotation tracking
 
-## 🛡️ Security Best Practices
+## Security Best Practices
 
 ### For This Tool
-- **Never commit your `.env` file** - it contains sensitive tokens
+- Never commit your .env file - it contains sensitive tokens
 - Use minimal required GitHub token permissions
 - Regularly rotate your GitHub tokens
 - Enable email alerts for immediate notification
 - Store sensitive config in system environment variables for production
 
 ### For Your Repositories
-- Use `.gitignore` to exclude sensitive files
+- Use .gitignore to exclude sensitive files
 - Implement pre-commit hooks for secret detection
 - Use secret management services (AWS Secrets Manager, Azure Key Vault)
 - Regular security audits and access reviews
 - Enable GitHub security features (Dependabot, Code Scanning)
 
-## � Performance
+## Performance
 
 ### Benchmarks
 - **Small repos** (< 100 files): ~2-5 seconds
@@ -252,7 +252,7 @@ Enhanced Components:
 - Caching for git history analysis
 - Configurable scanning depth
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
@@ -273,18 +273,18 @@ python -m coverage run -m pytest
 python -m coverage report
 ```
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - GitHub API for comprehensive repository access
 - Python community for excellent security libraries
 - SARIF specification for standardized security reporting
 - Security research community for threat intelligence
 
-## 📞 Support
+## Support
 
 - **Issues**: [GitHub Issues](https://github.com/ewestrum/GitScanner/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/ewestrum/GitScanner/discussions)
@@ -292,4 +292,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**⚠️ Disclaimer**: This tool is for authorized security testing only. Always ensure you have permission to scan repositories and comply with applicable laws and terms of service.
+**Disclaimer**: This tool is for authorized security testing only. Always ensure you have permission to scan repositories and comply with applicable laws and terms of service.
