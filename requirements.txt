@@ -1,0 +1,53 @@
+# Enhanced GitHub Monitor Requirements
+
+# Core HTTP library for GitHub API
+requests>=2.28.0
+
+# Environment variable management
+python-dotenv>=0.19.0
+
+# Character encoding detection for file analysis
+chardet>=5.0.0
+
+# MIME type detection for file classification
+python-magic>=0.4.27
+
+# YAML configuration support
+PyYAML>=6.0
+
+# Additional optional dependencies for enhanced features
+
+# For Windows users (python-magic binary)
+# Uncomment the line below if on Windows:
+# python-magic-bin>=0.4.14
+
+# For advanced email HTML templating (optional)
+# jinja2>=3.1.0
+
+# For advanced statistical analysis (optional) 
+# numpy>=1.21.0
+# scipy>=1.7.0
+
+# For advanced visualization in reports (optional)
+# matplotlib>=3.5.0
+# plotly>=5.0.0
+
+# For database storage of results (optional)
+# sqlalchemy>=1.4.0
+# sqlite3  # Built into Python
+
+# For advanced async processing (optional)
+# asyncio  # Built into Python
+# aiohttp>=3.8.0
+
+# For JSON schema validation (optional)
+# jsonschema>=4.0.0
+
+# For advanced regex testing and optimization (optional) 
+# regex>=2022.0.0
+
+# Development dependencies (optional)
+# pytest>=7.4.0
+# black>=23.0.0
+# flake8>=6.0.0
+# mypy>=1.5.0
