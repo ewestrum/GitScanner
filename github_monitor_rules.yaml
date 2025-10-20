@@ -1,0 +1,349 @@
+version: "1.0"
+
+# Advanced regex-based detection rules
+regex_rules:
+  aws-access-key:
+    id: "aws-access-key"
+    name: "AWS Access Key ID"
+    description: "Amazon Web Services Access Key ID"
+    pattern: '\\bAKIA[0-9A-Z]{16}\\b'
+    severity: "CRITICAL"
+    confidence: "HIGH"
+    file_patterns: []
+    exclude_patterns: []
+    context_patterns: []
+    enabled: true
+    tags: ["aws", "credentials", "api-key"]
+
+  aws-secret-key:
+    id: "aws-secret-key"
+    name: "AWS Secret Access Key"
+    description: "Amazon Web Services Secret Access Key"
+    pattern: '(?i)aws[_-]?secret[_-]?access[_-]?key[''\"\\s]*[:=][''\"\\s]*[A-Za-z0-9/+=]{40}'
+    severity: "CRITICAL"
+    confidence: "HIGH"
+    file_patterns: []
+    exclude_patterns: []
+    context_patterns: []
+    enabled: true
+    tags: ["aws", "credentials", "secret"]
+
+  github-pat:
+    id: "github-pat"
+    name: "GitHub Personal Access Token"
+    description: "GitHub Personal Access Token"
+    pattern: '\\bghp_[a-zA-Z0-9]{36}\\b'
+    severity: "CRITICAL"
+    confidence: "HIGH"
+    file_patterns: []
+    exclude_patterns: []
+    context_patterns: []
+    enabled: true
+    tags: ["github", "token", "api-key"]
+
+  github-oauth:
+    id: "github-oauth"
+    name: "GitHub OAuth Token"
+    description: "GitHub OAuth Token"
+    pattern: '\\bgho_[a-zA-Z0-9]{36}\\b'
+    severity: "CRITICAL"
+    confidence: "HIGH"
+    file_patterns: []
+    exclude_patterns: []
+    context_patterns: []
+    enabled: true
+    tags: ["github", "token", "oauth"]
+
+  rsa-private-key:
+    id: "rsa-private-key"
+    name: "RSA Private Key"
+    description: "RSA Private Key"
+    pattern: '-----BEGIN (RSA )?PRIVATE KEY-----'
+    severity: "CRITICAL"
+    confidence: "HIGH"
+    file_patterns: []
+    exclude_patterns: []
+    context_patterns: []
+    enabled: true
+    tags: ["private-key", "rsa", "crypto"]
+
+  ec-private-key:
+    id: "ec-private-key"
+    name: "EC Private Key"
+    description: "Elliptic Curve Private Key"
+    pattern: '-----BEGIN EC PRIVATE KEY-----'
+    severity: "CRITICAL"
+    confidence: "HIGH"
+    file_patterns: []
+    exclude_patterns: []
+    context_patterns: []
+    enabled: true
+    tags: ["private-key", "ec", "crypto"]
+
+  generic-api-key:
+    id: "generic-api-key"
+    name: "Generic API Key"
+    description: "Generic API Key Pattern"
+    pattern: '(?i)api[_-]?key[''\"\\s]*[:=][''\"\\s]*[A-Za-z0-9_-]{20,}'
+    severity: "HIGH"
+    confidence: "MEDIUM"
+    file_patterns: []
+    exclude_patterns:
+      - '.*[''\"](example|test|demo|sample|placeholder|your_|change_me)[''\"\\s]*'
+      - '.*[''\"](xxx+|\\*{3,}|\\.{3,})[''\"\\s]*'
+    context_patterns: []
+    enabled: true
+    tags: ["api-key", "generic"]
+
+  postgres-connection:
+    id: "postgres-connection"
+    name: "PostgreSQL Connection String"
+    description: "PostgreSQL database connection string"
+    pattern: 'postgresql://[^\\s\"'']+' 
+    severity: "HIGH"
+    confidence: "HIGH"
+    file_patterns: []
+    exclude_patterns: []
+    context_patterns: []
+    enabled: true
+    tags: ["database", "postgresql", "connection"]
+
+  mysql-connection:
+    id: "mysql-connection"
+    name: "MySQL Connection String"
+    description: "MySQL database connection string"
+    pattern: 'mysql://[^\\s\"'']+' 
+    severity: "HIGH"
+    confidence: "HIGH"
+    file_patterns: []
+    exclude_patterns: []
+    context_patterns: []
+    enabled: true
+    tags: ["database", "mysql", "connection"]
+
+  jwt-token:
+    id: "jwt-token"
+    name: "JWT Token"
+    description: "JSON Web Token"
+    pattern: '\\beyJ[a-zA-Z0-9_-]{10,}\\.[a-zA-Z0-9_-]{10,}\\.[a-zA-Z0-9_-]{10,}\\b'
+    severity: "MEDIUM"
+    confidence: "HIGH"
+    file_patterns: []
+    exclude_patterns: []
+    context_patterns: []
+    enabled: true
+    tags: ["jwt", "token", "auth"]
+
+  slack-token:
+    id: "slack-token"
+    name: "Slack Token"
+    description: "Slack API Token"
+    pattern: '\\bxox[baprs]-[0-9a-zA-Z-]{10,48}\\b'
+    severity: "HIGH"
+    confidence: "HIGH"
+    file_patterns: []
+    exclude_patterns: []
+    context_patterns: []
+    enabled: true
+    tags: ["slack", "token", "api-key"]
+
+  discord-token:
+    id: "discord-token"
+    name: "Discord Token"
+    description: "Discord Bot Token"
+    pattern: '\\b[MN][A-Za-z\\d]{23}\\.[\\w-]{6}\\.[\\w-]{27}\\b'
+    severity: "HIGH"
+    confidence: "HIGH"
+    file_patterns: []
+    exclude_patterns: []
+    context_patterns: []
+    enabled: true
+    tags: ["discord", "token", "bot"]
+
+  stripe-key:
+    id: "stripe-key"
+    name: "Stripe API Key"
+    description: "Stripe API Key"
+    pattern: '\\b(sk|pk)_(test|live)_[a-zA-Z0-9]{24,}\\b'
+    severity: "HIGH"
+    confidence: "HIGH"
+    file_patterns: []
+    exclude_patterns: []
+    context_patterns: []
+    enabled: true
+    tags: ["stripe", "api-key", "payment"]
+
+  google-api-key:
+    id: "google-api-key"
+    name: "Google API Key"
+    description: "Google API Key"
+    pattern: '\\bAIza[0-9A-Za-z_-]{35}\\b'
+    severity: "HIGH"
+    confidence: "HIGH"
+    file_patterns: []
+    exclude_patterns: []
+    context_patterns: []
+    enabled: true
+    tags: ["google", "api-key"]
+
+  openai-api-key:
+    id: "openai-api-key"
+    name: "OpenAI API Key"
+    description: "OpenAI API Key"
+    pattern: '\\bsk-[a-zA-Z0-9]{48}\\b'
+    severity: "HIGH"
+    confidence: "HIGH"
+    file_patterns: []
+    exclude_patterns: []
+    context_patterns: []
+    enabled: true
+    tags: ["openai", "api-key", "ai"]
+
+  email-address:
+    id: "email-address"
+    name: "Email Address"
+    description: "Email address"
+    pattern: '\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b'
+    severity: "LOW"
+    confidence: "MEDIUM"
+    file_patterns: []
+    exclude_patterns:
+      - '.*@(example\\.com|test\\.com|localhost|your-domain\\.com)'
+      - '.*@(noreply|no-reply|support|info|admin)'
+    context_patterns: []
+    enabled: true
+    tags: ["email", "pii"]
+
+  ipv4-address:
+    id: "ipv4-address"
+    name: "IPv4 Address"
+    description: "IPv4 IP Address"
+    pattern: '\\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\b'
+    severity: "LOW"
+    confidence: "MEDIUM"
+    file_patterns: []
+    exclude_patterns:
+      - '127\\.0\\.0\\.1'  # localhost
+      - '192\\.168\\.'     # private network
+      - '10\\.'            # private network
+      - '172\\.(1[6-9]|2[0-9]|3[01])\\.'  # private network
+      - '0\\.0\\.0\\.0'    # any address
+      - '255\\.255\\.255\\.255'  # broadcast
+    context_patterns: []
+    enabled: true
+    tags: ["ip", "network"]
+
+  credit-card:
+    id: "credit-card"
+    name: "Credit Card Number"
+    description: "Credit card number"
+    pattern: '\\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\\b'
+    severity: "HIGH"
+    confidence: "MEDIUM"
+    file_patterns: []
+    exclude_patterns: []
+    context_patterns: []
+    enabled: true
+    tags: ["credit-card", "pii", "financial"]
+
+  high-entropy-string:
+    id: "high-entropy-string"
+    name: "High Entropy String"
+    description: "High entropy string (potential secret)"
+    pattern: '(?i)(?:secret|key|token|password|auth)[''\"\\s]*[:=][''\"\\s]*[A-Za-z0-9+/=]{20,}'
+    severity: "MEDIUM"
+    confidence: "LOW"
+    file_patterns: []
+    exclude_patterns:
+      - '.*[''\"](example|test|demo|sample|placeholder|your_|change_me)[''\"\\s]*'
+      - '.*[''\"](xxx+|\\*{3,}|\\.{3,})[''\"\\s]*'
+    context_patterns: []
+    enabled: true
+    tags: ["entropy", "secret", "generic"]
+
+# Path-based filtering rules
+path_filters:
+  skip-test-files:
+    name: "Skip Test Files"
+    patterns:
+      - '.*test.*'
+      - '.*spec.*'
+      - '.*mock.*'
+      - '.*fixture.*'
+    action: "exclude"
+    priority: 10
+
+  skip-vendor:
+    name: "Skip Vendor Directories" 
+    patterns:
+      - '.*/vendor/.*'
+      - '.*/node_modules/.*'
+      - '.*/__pycache__/.*'
+      - '.*/\\.git/.*'
+      - '.*/\\.venv/.*'
+      - '.*/build/.*'
+      - '.*/dist/.*'
+      - '.*/target/.*'
+    action: "exclude"
+    priority: 20
+
+  include-config:
+    name: "Include Config Files"
+    patterns:
+      - '.*\\.env.*'
+      - '.*config.*'
+      - '.*\\.ya?ml$'
+      - '.*\\.json$'
+      - '.*\\.ini$'
+      - '.*\\.conf$'
+    action: "include"
+    priority: 5
+
+  include-secrets:
+    name: "Include Secret Files"
+    patterns:
+      - '.*secret.*'
+      - '.*key.*'
+      - '.*credential.*'
+      - '.*password.*'
+      - '.*auth.*'
+    action: "include"
+    priority: 1
+
+# Content-based filtering rules
+content_filters:
+  exclude-comments:
+    name: "Exclude Comment Sections"
+    patterns:
+      - '//.*'  # Single line comments
+      - '/\\*.*?\\*/'  # Multi-line comments
+      - '#.*'   # Hash comments
+      - '<!--.*?-->'  # HTML comments
+    action: "exclude"
+    context: "line"
+
+  exclude-placeholders:
+    name: "Exclude Placeholder Values"
+    patterns:
+      - '(?i)(placeholder|example|sample|test|demo|your_|change_me)'
+      - '(xxx+|\\*{3,}|\\.{3,})'
+      - '(?i)(todo|fixme|replace)'
+    action: "exclude"
+    context: "any"
+
+  exclude-documentation:
+    name: "Exclude Documentation Examples"
+    patterns:
+      - '(?i)(documentation|docs|readme|example|tutorial)'
+      - '(?i)(how-to|guide|manual)'
+    action: "exclude"
+    context: "file"
+
+# General settings
+settings:
+  enable_regex_rules: true
+  enable_path_filtering: true
+  enable_content_filtering: true
+  case_sensitive: false
+  multiline: true
+  max_match_length: 1000
