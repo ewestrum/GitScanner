@@ -104,6 +104,13 @@ ALERT_HIGH=true
 ALERT_MEDIUM=false
 ```
 
+## 📖 Documentation
+
+- **[User Guide](README.md)** - Installation, configuration, and usage
+- **[Technical Documentation](TECHNICAL_DOCS.md)** - Complete technical reference with data flow diagrams
+- **[Architecture Guide](ARCHITECTURE.md)** - Advanced architecture and design patterns
+- **[Enhanced Features](README_Enhanced.md)** - Enterprise features documentation
+
 ## 🏃‍♂️ Usage
 
 ### Basic Usage
