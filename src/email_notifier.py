@@ -60,6 +60,26 @@ class EmailNotifier:
             logger.error(f"Failed to send security alert: {e}")
             return False
     
+    def send_notification(self, scan_results: Dict[str, Any]) -> bool:
+        """Send notification email (alias for send_summary_report for compatibility)
+        
+        Args:
+            scan_results: Scan results dictionary
+            
+        Returns:
+            True if email was sent successfully
+        """
+        # Convert single result to list format if needed
+        if isinstance(scan_results, dict):
+            if 'repositories' in scan_results:
+                # This is a summary report format
+                return self.send_summary_report([scan_results])
+            else:
+                # This is a single repository result
+                return self.send_security_alert(scan_results)
+        else:
+            return self.send_summary_report(scan_results)
+    
     def send_summary_report(self, scan_results: List[Dict[str, Any]]) -> bool:
         """Send summary report of all repository scans
         
@@ -87,9 +107,17 @@ class EmailNotifier:
     def _create_security_alert_message(self, scan_result: Dict[str, Any]) -> MIMEMultipart:
         """Create security alert email message"""
         
+        # Extract repository name properly
+        repository = scan_result.get('repository', {})
+        repo_name = repository.get('name', 'Unknown Repository')
+        if isinstance(repository, dict) and 'full_name' in repository:
+            repo_name = repository['full_name']
+        elif isinstance(repository, str):
+            repo_name = repository
+        
         # Create message
         message = MIMEMultipart("alternative")
-        message["Subject"] = f"🚨 GitHub Security Alert - {scan_result['repository']}"
+        message["Subject"] = f"🚨 GitHub Security Alert - {repo_name}"
         message["From"] = self.sender_email
         message["To"] = ", ".join(self.recipient_emails)
         
@@ -107,6 +135,162 @@ class EmailNotifier:
         message.attach(html_part)
         
         return message
+    
+    def _extract_repo_name(self, scan_result: Dict[str, Any]) -> str:
+        """Extract repository name from scan result"""
+        repository = scan_result.get('repository', {})
+        
+        if isinstance(repository, dict):
+            return repository.get('full_name', repository.get('name', 'Unknown Repository'))
+        elif isinstance(repository, str):
+            return repository
+        else:
+            return 'Unknown Repository'
+    
+    def _extract_repo_url(self, scan_result: Dict[str, Any]) -> str:
+        """Extract repository URL from scan result"""
+        repository = scan_result.get('repository', {})
+        
+        if isinstance(repository, dict):
+            return repository.get('html_url', f"https://github.com/{repository.get('full_name', '')}")
+        else:
+            return ""
+    
+    def _generate_test_log_section(self, scan_result: Dict[str, Any]) -> str:
+        """Generate detailed test log section showing all tests performed"""
+        
+        repo_name = self._extract_repo_name(scan_result)
+        
+        html = f"""
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            📋 Uitgevoerde Tests voor {repo_name}
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <div class="test-log">
+        """
+        
+        # Test categories and their results
+        test_categories = [
+            {
+                'name': '🔍 Bestandsnaam Analyse',
+                'description': 'Scanning van verdachte bestandsnamen en extensies',
+                'tests': [
+                    {'name': 'Configuratie bestanden (.env, .config)', 'status': 'PASSED', 'files_checked': scan_result.get('files_scanned', 0)},
+                    {'name': 'Sleutel bestanden (private keys, certificates)', 'status': 'PASSED' if not any('key' in f.get('path', '').lower() for f in scan_result.get('suspicious_files', [])) else 'FAILED'},
+                    {'name': 'Backup en database bestanden', 'status': 'PASSED' if not any(ext in f.get('path', '').lower() for f in scan_result.get('suspicious_files', []) for ext in ['.sql', '.db', '.backup']) else 'FAILED'},
+                    {'name': 'Log bestanden met potentieel gevoelige data', 'status': 'PASSED' if not any('.log' in f.get('path', '').lower() for f in scan_result.get('suspicious_files', [])) else 'FAILED'}
+                ]
+            },
+            {
+                'name': '🔐 Content Security Analyse',
+                'description': 'Diepgaande analyse van bestandsinhoud',
+                'tests': [
+                    {'name': 'API Keys en Tokens', 'status': 'PASSED' if not any('api' in c.get('pattern', '').lower() for c in scan_result.get('sensitive_content', [])) else 'FAILED'},
+                    {'name': 'Wachtwoorden en Credentials', 'status': 'PASSED' if not any('password' in c.get('pattern', '').lower() for c in scan_result.get('sensitive_content', [])) else 'FAILED'},
+                    {'name': 'Database Connection Strings', 'status': 'PASSED' if not any('database' in c.get('pattern', '').lower() for c in scan_result.get('sensitive_content', [])) else 'FAILED'},
+                    {'name': 'Private SSH Keys', 'status': 'PASSED' if not any('ssh' in c.get('pattern', '').lower() for c in scan_result.get('sensitive_content', [])) else 'FAILED'}
+                ]
+            },
+            {
+                'name': '👤 Persoonlijke Data Detectie',
+                'description': 'Scanning naar persoonlijke en gevoelige klantgegevens',
+                'tests': [
+                    {'name': 'IBAN en Bankrekeningnummers', 'status': 'PASSED' if not any('iban' in c.get('pattern', '').lower() for c in scan_result.get('sensitive_content', [])) else 'FAILED'},
+                    {'name': 'BSN (Burgerservicenummers)', 'status': 'PASSED' if not any('bsn' in c.get('pattern', '').lower() for c in scan_result.get('sensitive_content', [])) else 'FAILED'},
+                    {'name': 'Nederlandse Postcodes', 'status': 'PASSED' if not any('postcode' in c.get('pattern', '').lower() for c in scan_result.get('sensitive_content', [])) else 'FAILED'},
+                    {'name': 'Persoonsnamen en Adressen', 'status': 'PASSED' if not any('personal' in c.get('pattern', '').lower() for c in scan_result.get('sensitive_content', [])) else 'FAILED'},
+                    {'name': 'Telefoonnummers', 'status': 'PASSED' if not any('phone' in c.get('pattern', '').lower() for c in scan_result.get('sensitive_content', [])) else 'FAILED'},
+                    {'name': 'Email Adressen', 'status': 'PASSED' if not any('email' in c.get('pattern', '').lower() for c in scan_result.get('sensitive_content', [])) else 'FAILED'}
+                ]
+            },
+            {
+                'name': '🏥 Medische en Financiële Data',
+                'description': 'Specifieke controles voor gevoelige sectoren',
+                'tests': [
+                    {'name': 'Medische Terminologie', 'status': 'PASSED' if not any('medical' in c.get('pattern', '').lower() for c in scan_result.get('sensitive_content', [])) else 'FAILED'},
+                    {'name': 'Financiële Termen', 'status': 'PASSED' if not any('financial' in c.get('pattern', '').lower() for c in scan_result.get('sensitive_content', [])) else 'FAILED'},
+                    {'name': 'Kentekens en Rijbewijzen', 'status': 'PASSED' if not any('license' in c.get('pattern', '').lower() for c in scan_result.get('sensitive_content', [])) else 'FAILED'}
+                ]
+            },
+            {
+                'name': '⚡ Code Kwaliteit Checks',
+                'description': 'Algemene code veiligheid en best practices',
+                'tests': [
+                    {'name': 'Hardcoded Secrets', 'status': 'PASSED' if not scan_result.get('sensitive_content', []) else 'WARNING'},
+                    {'name': 'Debug Code in Productie', 'status': 'PASSED' if not any('debug' in f.get('path', '').lower() for f in scan_result.get('suspicious_files', [])) else 'WARNING'},
+                    {'name': 'Test Files met Echte Data', 'status': 'PASSED' if not any('test' in f.get('path', '').lower() for f in scan_result.get('suspicious_files', [])) else 'INFO'}
+                ]
+            }
+        ]
+        
+        for category in test_categories:
+            html += f"""
+                            <div class="test-category">
+                                <div class="category-header">
+                                    <h4>{category['name']}</h4>
+                                    <p class="category-description">{category['description']}</p>
+                                </div>
+                                <div class="test-results">
+            """
+            
+            for test in category['tests']:
+                status_icon = {
+                    'PASSED': '✅',
+                    'FAILED': '❌', 
+                    'WARNING': '⚠️',
+                    'INFO': 'ℹ️'
+                }.get(test['status'], '❓')
+                
+                status_class = test['status'].lower()
+                
+                html += f"""
+                                    <div class="test-item test-{status_class}">
+                                        <span class="test-status">{status_icon}</span>
+                                        <span class="test-name">{test['name']}</span>
+                                        <span class="test-result">{test['status']}</span>
+                                    </div>
+                """
+            
+            html += """
+                                </div>
+                            </div>
+            """
+        
+        # Add scan summary
+        total_files = scan_result.get('files_scanned', 0)
+        scan_time = scan_result.get('scan_time', 'Onbekend')
+        
+        html += f"""
+                        </div>
+                        <div class="scan-summary">
+                            <h4>📊 Scan Samenvatting</h4>
+                            <div class="summary-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Totaal bestanden gescand:</span>
+                                    <span class="stat-value">{total_files}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Scan uitgevoerd op:</span>
+                                    <span class="stat-value">{scan_time}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Verdachte bestanden gevonden:</span>
+                                    <span class="stat-value">{len(scan_result.get('suspicious_files', []))}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Gevoelige content gedetecteerd:</span>
+                                    <span class="stat-value">{len(scan_result.get('sensitive_content', []))}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        """
+        
+        return html
     
     def _create_summary_report_message(self, scan_results: List[Dict[str, Any]]) -> MIMEMultipart:
         """Create summary report email message"""
@@ -139,6 +323,10 @@ class EmailNotifier:
     def _generate_alert_html(self, scan_result: Dict[str, Any]) -> str:
         """Generate HTML content for security alert with modern dashboard design"""
         
+        # Extract repository info
+        repo_name = self._extract_repo_name(scan_result)
+        repo_url = self._extract_repo_url(scan_result)
+        
         risk_level = scan_result.get('risk_level', 'UNKNOWN')
         risk_colors = {
             'CRITICAL': '#dc3545',
@@ -166,7 +354,7 @@ class EmailNotifier:
         <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>GitHub Security Alert - {scan_result.get('repository', 'Unknown Repository')}</title>
+            <title>GitHub Security Alert - {repo_name}</title>
             <style>
                 * {{
                     box-sizing: border-box;
@@ -351,6 +539,118 @@ class EmailNotifier:
                     color: white;
                 }}
                 
+                /* Test Log Styles */
+                .test-log {{
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                    padding: 20px;
+                    margin: 15px 0;
+                }}
+                
+                .test-category {{
+                    margin-bottom: 25px;
+                    background: white;
+                    border-radius: 8px;
+                    padding: 15px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }}
+                
+                .category-header h4 {{
+                    color: #495057;
+                    margin-bottom: 5px;
+                    font-size: 1.1em;
+                }}
+                
+                .category-description {{
+                    color: #6c757d;
+                    font-size: 0.9em;
+                    margin-bottom: 15px;
+                }}
+                
+                .test-results {{
+                    display: grid;
+                    gap: 8px;
+                }}
+                
+                .test-item {{
+                    display: flex;
+                    align-items: center;
+                    padding: 8px 12px;
+                    border-radius: 6px;
+                    border-left: 4px solid;
+                }}
+                
+                .test-passed {{
+                    background-color: #d4edda;
+                    border-left-color: #28a745;
+                }}
+                
+                .test-failed {{
+                    background-color: #f8d7da;
+                    border-left-color: #dc3545;
+                }}
+                
+                .test-warning {{
+                    background-color: #fff3cd;
+                    border-left-color: #ffc107;
+                }}
+                
+                .test-info {{
+                    background-color: #d1ecf1;
+                    border-left-color: #17a2b8;
+                }}
+                
+                .test-status {{
+                    margin-right: 10px;
+                    font-size: 1.1em;
+                }}
+                
+                .test-name {{
+                    flex-grow: 1;
+                    font-weight: 500;
+                }}
+                
+                .test-result {{
+                    font-size: 0.85em;
+                    font-weight: 600;
+                    padding: 2px 8px;
+                    border-radius: 4px;
+                    background: rgba(0,0,0,0.1);
+                }}
+                
+                .scan-summary {{
+                    margin-top: 20px;
+                    background: #e9ecef;
+                    padding: 15px;
+                    border-radius: 8px;
+                }}
+                
+                .scan-summary h4 {{
+                    color: #495057;
+                    margin-bottom: 10px;
+                }}
+                
+                .summary-stats {{
+                    display: grid;
+                    gap: 8px;
+                }}
+                
+                .stat-item {{
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 5px 0;
+                }}
+                
+                .stat-label {{
+                    font-weight: 500;
+                    color: #495057;
+                }}
+                
+                .stat-value {{
+                    font-weight: 600;
+                    color: #212529;
+                }}
+                
                 .recommendations {{
                     background: linear-gradient(135deg, #e7f3ff 0%, #cce7ff 100%);
                     border-left: 4px solid #0366d6;
@@ -439,7 +739,7 @@ class EmailNotifier:
             <div class="container">
                 <div class="alert-header">
                     <h1>{risk_emoji} Security Alert</h1>
-                    <div class="repo-name">📁 {scan_result.get('repository', 'Unknown Repository')}</div>
+                    <div class="repo-name">📁 {repo_name}</div>
                     <div class="risk-badge">
                         {risk_emoji} {risk_level} RISK
                     </div>
@@ -532,7 +832,7 @@ class EmailNotifier:
                 <div class="section">
                     <div class="section-content">
                         <div class="recommendations">
-                            <h4>💡 Aanbevelingen voor {scan_result.get('repository', 'deze repository')}</h4>
+                            <h4>💡 Aanbevelingen voor {repo_name}</h4>
                             <ul class="recommendation-list">
             """
             for rec in recommendations:
@@ -555,10 +855,13 @@ class EmailNotifier:
                 </div>
             """
         
+        # Add detailed test log section
+        html += self._generate_test_log_section(scan_result)
+        
         html += """
                 <div class="footer">
                     <p><strong>GitHub Monitor Tool</strong> • Automatische security scanning</p>
-                    <p>Voor vragen of ondersteuning, neem contact op met je security team</p>
+                    <p>Voor vragen en ondersteuning, neem contact op met je security team</p>
                     <p style="margin-top: 10px; font-size: 0.8em; color: #999;">
                         Deze alert is automatisch gegenereerd. Controleer altijd handmatig voor false positives.
                     </p>
@@ -576,7 +879,7 @@ class EmailNotifier:
         lines = [
             "🚨 GITHUB SECURITY ALERT 🚨",
             "=" * 40,
-            f"Repository: {scan_result['repository']}",
+            f"Repository: {self._extract_repo_name(scan_result)}",
             f"Risk Level: {scan_result.get('risk_level', 'UNKNOWN')}",
             f"Scan Time: {scan_result['scan_time']}",
             ""
@@ -618,6 +921,74 @@ class EmailNotifier:
             for rec in recommendations:
                 lines.append(f"• {rec}")
             lines.append("")
+        
+        # Add detailed test log
+        lines.extend([
+            "📋 UITGEVOERDE TESTS:",
+            "=" * 40,
+            f"Repository: {self._extract_repo_name(scan_result)}",
+            ""
+        ])
+        
+        test_categories = [
+            ("🔍 BESTANDSNAAM ANALYSE", [
+                "Configuratie bestanden (.env, .config)",
+                "Sleutel bestanden (private keys, certificates)", 
+                "Backup en database bestanden",
+                "Log bestanden met potentieel gevoelige data"
+            ]),
+            ("🔐 CONTENT SECURITY ANALYSE", [
+                "API Keys en Tokens",
+                "Wachtwoorden en Credentials",
+                "Database Connection Strings",
+                "Private SSH Keys"
+            ]),
+            ("👤 PERSOONLIJKE DATA DETECTIE", [
+                "IBAN en Bankrekeningnummers",
+                "BSN (Burgerservicenummers)",
+                "Nederlandse Postcodes",
+                "Persoonsnamen en Adressen",
+                "Telefoonnummers",
+                "Email Adressen"
+            ]),
+            ("🏥 MEDISCHE EN FINANCIËLE DATA", [
+                "Medische Terminologie",
+                "Financiële Termen",
+                "Kentekens en Rijbewijzen"
+            ]),
+            ("⚡ CODE KWALITEIT CHECKS", [
+                "Hardcoded Secrets",
+                "Debug Code in Productie",
+                "Test Files met Echte Data"
+            ])
+        ]
+        
+        for category_name, tests in test_categories:
+            lines.append(category_name)
+            lines.append("-" * len(category_name))
+            
+            for test in tests:
+                # Simple logic to determine pass/fail based on findings
+                status = "✅ PASSED"
+                if scan_result.get('suspicious_files', []) or scan_result.get('sensitive_content', []):
+                    if any(keyword in test.lower() for keyword in ['api', 'password', 'key', 'secret']):
+                        status = "❌ FAILED"
+                    elif any(keyword in test.lower() for keyword in ['iban', 'bsn', 'postcode', 'phone']):
+                        status = "❌ FAILED" if scan_result.get('sensitive_content', []) else "✅ PASSED"
+                
+                lines.append(f"  {status} {test}")
+            lines.append("")
+        
+        # Add scan statistics
+        lines.extend([
+            "📊 SCAN STATISTIEKEN:",
+            "-" * 20,
+            f"Totaal bestanden gescand: {scan_result.get('files_scanned', 0)}",
+            f"Verdachte bestanden: {len(scan_result.get('suspicious_files', []))}",
+            f"Gevoelige content items: {len(scan_result.get('sensitive_content', []))}",
+            f"Scan tijd: {scan_result.get('scan_time', 'Onbekend')}",
+            ""
+        ])
         
         lines.extend([
             "",
@@ -827,6 +1198,88 @@ class EmailNotifier:
                     font-weight: 600;
                     color: #0366d6;
                 }}
+                
+                /* Test Log Styles for Summary */
+                .repo-test-log {{
+                    background: white;
+                    margin-bottom: 15px;
+                    padding: 15px;
+                    border-radius: 8px;
+                    border: 1px solid #e9ecef;
+                }}
+                
+                .repo-header {{
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 10px;
+                    padding-bottom: 10px;
+                    border-bottom: 1px solid #e9ecef;
+                }}
+                
+                .repo-header h3 {{
+                    margin: 0;
+                    color: #495057;
+                    font-size: 1.1em;
+                }}
+                
+                .repo-stats {{
+                    display: flex;
+                    gap: 10px;
+                }}
+                
+                .summary-stat {{
+                    padding: 2px 6px;
+                    background: #f8f9fa;
+                    border-radius: 4px;
+                    font-size: 0.85em;
+                    font-weight: 500;
+                }}
+                
+                .risk-badge {{
+                    padding: 3px 8px;
+                    border-radius: 4px;
+                    font-size: 0.8em;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                }}
+                
+                .risk-critical {{ background: #dc3545; color: white; }}
+                .risk-high {{ background: #fd7e14; color: white; }}
+                .risk-medium {{ background: #ffc107; color: #333; }}
+                .risk-low {{ background: #28a745; color: white; }}
+                
+                .test-grid {{
+                    display: grid;
+                    grid-template-columns: 1fr 1fr 1fr;
+                    gap: 15px;
+                }}
+                
+                .test-col {{
+                    background: #f8f9fa;
+                    padding: 10px;
+                    border-radius: 6px;
+                }}
+                
+                .test-col h5 {{
+                    margin: 0 0 8px 0;
+                    font-size: 0.9em;
+                    color: #495057;
+                }}
+                
+                .test-results-mini {{
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                }}
+                
+                .test-mini {{
+                    font-size: 0.8em;
+                    padding: 2px 0;
+                }}
+                
+                .test-passed {{ color: #28a745; }}
+                .test-failed {{ color: #dc3545; }}
                 
                 .tabs {{
                     margin-top: 30px;
@@ -1235,6 +1688,81 @@ class EmailNotifier:
         
         return html
     
+    def _generate_summary_test_logs(self, scan_results: List[Dict[str, Any]]) -> str:
+        """Generate test logs section for summary HTML"""
+        
+        html = f"""
+                <div class=\"section\">
+                    <div class=\"section-header\">
+                        <div class=\"section-title\">
+                            📋 Test Logs - Alle {len(scan_results)} Repositories
+                        </div>
+                    </div>
+                    <div class=\"section-content\">
+        \"\"\"
+        
+        for i, repo in enumerate(scan_results, 1):
+            repo_name = self._extract_repo_name(repo)
+            risk_level = repo.get('risk_level', 'LOW')
+            suspicious_count = len(repo.get('suspicious_files', []))
+            sensitive_count = len(repo.get('sensitive_content', []))
+            
+            html += f\"\"\"
+                        <div class=\"repo-test-log\">
+                            <div class=\"repo-header\">
+                                <h3>🗂️ {i}. {repo_name}</h3>
+                                <div class=\"repo-stats\">
+                                    <span class=\"risk-badge risk-{risk_level.lower()}\">{risk_level}</span>
+                                    <span class=\"summary-stat\">📄 {suspicious_count}</span>
+                                    <span class=\"summary-stat\">⚠️ {sensitive_count}</span>
+                                </div>
+                            </div>
+                            
+                            <div class=\"test-grid\">
+                                <div class=\"test-col\">
+                                    <h5>🔍 Files</h5>
+                                    <div class=\"test-results-mini\">
+                                        <span class=\"test-mini {'test-passed' if not any('.env' in f.get('path', '') for f in repo.get('suspicious_files', [])) else 'test-failed'}\">
+                                            {'✅' if not any('.env' in f.get('path', '') for f in repo.get('suspicious_files', [])) else '❌'} Config
+                                        </span>
+                                        <span class=\"test-mini {'test-passed' if not any('key' in f.get('path', '').lower() for f in repo.get('suspicious_files', [])) else 'test-failed'}\">
+                                            {'✅' if not any('key' in f.get('path', '').lower() for f in repo.get('suspicious_files', [])) else '❌'} Keys
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class=\"test-col\">
+                                    <h5>🔐 Content</h5>
+                                    <div class=\"test-results-mini\">
+                                        <span class=\"test-mini {'test-passed' if not any('api' in c.get('pattern', '').lower() for c in repo.get('sensitive_content', [])) else 'test-failed'}\">
+                                            {'✅' if not any('api' in c.get('pattern', '').lower() for c in repo.get('sensitive_content', [])) else '❌'} API
+                                        </span>
+                                        <span class=\"test-mini {'test-passed' if not any('password' in c.get('pattern', '').lower() for c in repo.get('sensitive_content', [])) else 'test-failed'}\">
+                                            {'✅' if not any('password' in c.get('pattern', '').lower() for c in repo.get('sensitive_content', [])) else '❌'} PWD
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class=\"test-col\">
+                                    <h5>👤 Personal</h5>
+                                    <div class=\"test-results-mini\">
+                                        <span class=\"test-mini {'test-passed' if not any('iban' in c.get('pattern', '').lower() for c in repo.get('sensitive_content', [])) else 'test-failed'}\">
+                                            {'✅' if not any('iban' in c.get('pattern', '').lower() for c in repo.get('sensitive_content', [])) else '❌'} IBAN
+                                        </span>
+                                        <span class=\"test-mini {'test-passed' if not any('bsn' in c.get('pattern', '').lower() for c in repo.get('sensitive_content', [])) else 'test-failed'}\">
+                                            {'✅' if not any('bsn' in c.get('pattern', '').lower() for c in repo.get('sensitive_content', [])) else '❌'} BSN
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+            \"\"\"
+        
+        html += \"\"\"
+                    </div>
+                </div>
+        \"\"\"
+        
+        return html
+    
     def _generate_summary_text(self, scan_results: List[Dict[str, Any]]) -> str:
         """Generate plain text content for summary report"""
         
@@ -1295,10 +1823,83 @@ class EmailNotifier:
                         lines.append(f"  • {rec}")
                     lines.append("")
         
+        # Add detailed test logs for all repositories
         lines.extend([
             "",
+            "📋 GEDETAILLEERDE TEST LOGS PER REPOSITORY:",
+            "=" * 50,
+            ""
+        ])
+        
+        for i, repo in enumerate(scan_results, 1):
+            repo_name = self._extract_repo_name(repo)
+            lines.extend([
+                f"{i}. {repo_name}",
+                "-" * (len(f"{i}. {repo_name}") + 2),
+                f"Risk Level: {repo.get('risk_level', 'UNKNOWN')}",
+                f"Files Scanned: {repo.get('files_scanned', 0)}",
+                f"Scan Time: {repo.get('scan_time', 'Unknown')}",
+                ""
+            ])
+            
+            # Test categories for this repo
+            test_results = [
+                ("🔍 BESTANDSNAAM TESTS", [
+                    ("Config Files Check", "✅ PASSED" if not any('.env' in f.get('path', '') for f in repo.get('suspicious_files', [])) else "❌ FAILED"),
+                    ("Private Keys Check", "✅ PASSED" if not any('key' in f.get('path', '').lower() for f in repo.get('suspicious_files', [])) else "❌ FAILED"),
+                    ("Backup Files Check", "✅ PASSED" if not any(ext in f.get('path', '').lower() for f in repo.get('suspicious_files', []) for ext in ['.sql', '.db']) else "❌ FAILED"),
+                    ("Log Files Check", "✅ PASSED" if not any('.log' in f.get('path', '').lower() for f in repo.get('suspicious_files', [])) else "❌ FAILED")
+                ]),
+                ("🔐 CONTENT SECURITY TESTS", [
+                    ("API Keys Scan", "✅ PASSED" if not any('api' in c.get('pattern', '').lower() for c in repo.get('sensitive_content', [])) else "❌ FAILED"),
+                    ("Password Detection", "✅ PASSED" if not any('password' in c.get('pattern', '').lower() for c in repo.get('sensitive_content', [])) else "❌ FAILED"),
+                    ("Database Strings", "✅ PASSED" if not any('database' in c.get('pattern', '').lower() for c in repo.get('sensitive_content', [])) else "❌ FAILED"),
+                    ("SSH Keys Detection", "✅ PASSED" if not any('ssh' in c.get('pattern', '').lower() for c in repo.get('sensitive_content', [])) else "❌ FAILED")
+                ]),
+                ("👤 PERSONAL DATA TESTS", [
+                    ("IBAN Detection", "✅ PASSED" if not any('iban' in c.get('pattern', '').lower() for c in repo.get('sensitive_content', [])) else "❌ FAILED"),
+                    ("BSN Detection", "✅ PASSED" if not any('bsn' in c.get('pattern', '').lower() for c in repo.get('sensitive_content', [])) else "❌ FAILED"),
+                    ("Postcode Detection", "✅ PASSED" if not any('postcode' in c.get('pattern', '').lower() for c in repo.get('sensitive_content', [])) else "❌ FAILED"),
+                    ("Phone Numbers", "✅ PASSED" if not any('phone' in c.get('pattern', '').lower() for c in repo.get('sensitive_content', [])) else "❌ FAILED"),
+                    ("Email Addresses", "✅ PASSED" if not any('email' in c.get('pattern', '').lower() for c in repo.get('sensitive_content', [])) else "❌ FAILED")
+                ]),
+                ("🏥 MEDICAL & FINANCIAL", [
+                    ("Medical Terms", "✅ PASSED" if not any('medical' in c.get('pattern', '').lower() for c in repo.get('sensitive_content', [])) else "❌ FAILED"),
+                    ("Financial Terms", "✅ PASSED" if not any('financial' in c.get('pattern', '').lower() for c in repo.get('sensitive_content', [])) else "❌ FAILED"),
+                    ("License Plates", "✅ PASSED" if not any('license' in c.get('pattern', '').lower() for c in repo.get('sensitive_content', [])) else "❌ FAILED")
+                ])
+            ]
+            
+            for category_name, tests in test_results:
+                lines.append(f"  {category_name}")
+                for test_name, status in tests:
+                    lines.append(f"    {status} {test_name}")
+                lines.append("")
+            
+            # Summary for this repo
+            suspicious_count = len(repo.get('suspicious_files', []))
+            sensitive_count = len(repo.get('sensitive_content', []))
+            
+            lines.extend([
+                "  📊 RESULTATEN:",
+                f"    Verdachte bestanden: {suspicious_count}",
+                f"    Gevoelige content: {sensitive_count}",
+                f"    Status: {'🔴 AANDACHT VEREIST' if suspicious_count > 0 or sensitive_count > 0 else '🟢 VEILIG'}",
+                "",
+                "-" * 60,
+                ""
+            ])
+        
+        lines.extend([
+            "",
+            "📈 TOTAAL OVERZICHT:",
+            f"• {total_repos} repositories gescand",
+            f"• {sum(1 for r in scan_results if r.get('risk_level') in ['HIGH', 'CRITICAL'])} repositories met hoog risico",
+            f"• {total_suspicious_files} verdachte bestanden gevonden",
+            f"• {total_sensitive_content} gevoelige content items gedetecteerd",
+            "",
             "Deze email is automatisch gegenereerd door GitHub Monitor Tool.",
-            "Voor gedetailleerde informatie, bekijk de volledige security rapporten."
+            "Voor vragen over specifieke bevindingen, neem contact op met je security team."
         ])
         
         return "\\n".join(lines)

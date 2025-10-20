@@ -99,6 +99,70 @@ class ContentAnalyzer:
             r'ssh-(?:rsa|dss|ed25519|ecdsa) [A-Za-z0-9+/=]+'
         )
         
+        # Customer and Personal Data Patterns
+        # Dutch postal codes
+        self.postal_code_patterns = [
+            re.compile(r'\b[1-9][0-9]{3}\s?[A-Za-z]{2}\b'),  # Dutch postal code
+            re.compile(r'\b[0-9]{5}(?:-[0-9]{4})?\b'),        # US ZIP code
+            re.compile(r'\b[A-Za-z][0-9][A-Za-z]\s?[0-9][A-Za-z][0-9]\b'),  # Canadian postal
+        ]
+        
+        # IBAN patterns
+        self.iban_patterns = [
+            re.compile(r'\bNL[0-9]{2}[A-Z]{4}[0-9]{10}\b'),   # Dutch IBAN
+            re.compile(r'\b[A-Z]{2}[0-9]{2}[A-Z0-9]{4}[0-9]{7}([A-Z0-9]?){0,16}\b'),  # General IBAN
+        ]
+        
+        # Personal names patterns (common Dutch/English names)
+        self.personal_name_patterns = [
+            re.compile(r'\b(Jan|Piet|Klaas|Marie|Anna|Emma|Noah|Liam|Olivia|Ava)\s+[A-Z][a-z]+\b'),
+            re.compile(r'\b[A-Z][a-z]+\s+(de\s+)?[A-Z][a-z]+\b'),  # First Last or First de Last
+        ]
+        
+        # Address patterns
+        self.address_patterns = [
+            re.compile(r'\b[A-Z][a-z]+(?:straat|laan|weg|plein|kade)\s+[0-9]+[a-z]?\b'),  # Dutch street
+            re.compile(r'\b[0-9]+\s+[A-Z][a-z]+\s+(?:Street|Avenue|Road|Drive|Lane)\b'),    # English street
+        ]
+        
+        # Date of birth patterns
+        self.dob_patterns = [
+            re.compile(r'\b[0-3]?[0-9][-/][0-1]?[0-9][-/][12][90][0-9]{2}\b'),  # DD-MM-YYYY or DD/MM/YYYY
+            re.compile(r'\b[12][90][0-9]{2}[-/][0-1]?[0-9][-/][0-3]?[0-9]\b'),  # YYYY-MM-DD
+        ]
+        
+        # License plate patterns
+        self.license_plate_patterns = [
+            re.compile(r'\b[0-9]{2}-[A-Z]{2}-[0-9]{2}\b'),      # Dutch old format
+            re.compile(r'\b[0-9]{1,3}-[A-Z]{3}-[0-9]{1,2}\b'),  # Dutch new format
+            re.compile(r'\b[A-Z]{2}-[0-9]{3}-[A-Z]{2}\b'),      # Dutch sidecode
+        ]
+        
+        # Insurance/ID numbers
+        self.id_number_patterns = [
+            re.compile(r'\b[A-Z]{2}[0-9]{6,8}\b'),              # Generic ID pattern
+            re.compile(r'\bNL[0-9]{9}B[0-9]{2}\b'),             # Dutch KvK number
+        ]
+        
+        # Medical/sensitive keywords
+        self.medical_keywords = [
+            re.compile(r'\b(diagnose|diagnosis|medical|patient|treatment|medication|prescription)\b', re.IGNORECASE),
+            re.compile(r'\b(ziekenhuis|dokter|arts|medicijn|behandeling|diagnose)\b', re.IGNORECASE),  # Dutch medical
+        ]
+        
+        # Financial keywords and data
+        self.financial_patterns = [
+            re.compile(r'\b(salary|salaris|income|inkomen|bonus|commission)\s*[=:]?\s*[€$][0-9,]+\b', re.IGNORECASE),
+            re.compile(r'\b(account|rekening)\s*(?:number|nummer)?[=:]?\s*[0-9]{8,12}\b', re.IGNORECASE),
+        ]
+        
+        # Customer/Business data
+        self.business_data_patterns = [
+            re.compile(r'\b(customer|klant|client)\s*(?:id|number|nummer)?[=:]?\s*[A-Z0-9]{6,}\b', re.IGNORECASE),
+            re.compile(r'\b(order|bestelling)\s*(?:id|number|nummer)?[=:]?\s*[A-Z0-9]{6,}\b', re.IGNORECASE),
+            re.compile(r'\b(invoice|factuur)\s*(?:id|number|nummer)?[=:]?\s*[A-Z0-9]{6,}\b', re.IGNORECASE),
+        ]
+        
         # Cryptocurrency wallet addresses
         self.crypto_patterns = [
             re.compile(r'\\b[13][a-km-zA-HJ-NP-Z1-9]{25,34}\\b'),  # Bitcoin
@@ -110,48 +174,275 @@ class ContentAnalyzer:
             r'eyJ[A-Za-z0-9_-]*\\.[A-Za-z0-9_-]*\\.[A-Za-z0-9_-]*'
         )
     
+    def _is_code_or_docs_file(self, file_path: str) -> bool:
+        """Check if file is code or documentation"""
+        code_extensions = {'.py', '.js', '.ts', '.java', '.cpp', '.c', '.h', '.cs', '.php', '.rb', '.go', '.rs', '.swift'}
+        docs_extensions = {'.md', '.txt', '.rst', '.pdf', '.doc', '.docx', '.html', '.xml'}
+        
+        extension = file_path.lower().split('.')[-1] if '.' in file_path else ''
+        return f'.{extension}' in code_extensions or f'.{extension}' in docs_extensions
+    
     def analyze_content(self, content: str, file_path: str) -> List[Dict[str, Any]]:
-        """Analyze file content for sensitive information
+        """Analyze content for sensitive information including customer data
         
         Args:
             content: File content to analyze
             file_path: Path of the file being analyzed
             
         Returns:
-            List of sensitive content matches
+            List of findings
         """
+        findings = []
+        
         if not content:
-            return []
+            return findings
+            
+        # Convert to string if bytes
+        if isinstance(content, bytes):
+            try:
+                content = content.decode('utf-8', errors='ignore')
+            except Exception:
+                logger.warning(f"Could not decode content for {file_path}")
+                return findings
         
-        matches = []
+        # Skip code files and documentation for personal data detection
+        is_code_file = self._is_code_or_docs_file(file_path)
         
-        # Skip binary content or very large files
-        if len(content) > 1024 * 1024:  # 1MB limit
-            logger.warning(f"Skipping large file: {file_path}")
-            return matches
+        # Check for API keys
+        for pattern in self.api_key_patterns:
+            matches = pattern.findall(content)
+            for match in matches:
+                match_str = match if isinstance(match, str) else match[0] if match else ''
+                if not self._is_placeholder_value(match_str):
+                    findings.append({
+                        'type': 'api_key',
+                        'severity': 'HIGH',
+                        'pattern': pattern.pattern,
+                        'match': match_str[:20] + '****' if len(match_str) > 20 else match_str,
+                        'file_path': file_path,
+                        'risk_score': 90
+                    })
         
-        try:
-            # Check for non-text content
-            if '\\x00' in content[:1024]:  # Binary file indicator
-                return matches
+        # Check for passwords
+        for pattern in self.password_patterns:
+            matches = pattern.findall(content)
+            for match in matches:
+                if not self._is_placeholder_value(match):
+                    findings.append({
+                        'type': 'password',
+                        'severity': 'HIGH',
+                        'pattern': 'Password',
+                        'match': '****',
+                        'file_path': file_path,
+                        'risk_score': 85
+                    })
+        
+        # Personal and customer data detection (skip for code files)
+        if not is_code_file:
+            # Check for IBAN numbers
+            for pattern in self.iban_patterns:
+                matches = pattern.findall(content)
+                for match in matches:
+                    findings.append({
+                        'type': 'iban_number',
+                        'severity': 'HIGH',
+                        'pattern': 'IBAN Number',
+                        'match': match[:8] + '****',  # Mask sensitive part
+                        'file_path': file_path,
+                        'risk_score': 80
+                    })
             
-            # Analyze for different types of sensitive content
-            matches.extend(self._find_api_keys(content, file_path))
-            matches.extend(self._find_passwords(content, file_path))
-            matches.extend(self._find_database_connections(content, file_path))
-            matches.extend(self._find_personal_data(content, file_path))
-            matches.extend(self._find_private_keys(content, file_path))
-            matches.extend(self._find_tokens(content, file_path))
+            # Check for postal codes
+            postal_matches = 0
+            for pattern in self.postal_code_patterns:
+                matches = pattern.findall(content)
+                postal_matches += len(matches)
             
-            # Apply custom rules if configured
-            if 'custom_patterns' in self.content_rules:
-                matches.extend(self._apply_custom_patterns(content, file_path))
+            if postal_matches > 0:
+                findings.append({
+                    'type': 'postal_codes',
+                    'severity': 'MEDIUM',
+                    'pattern': 'Postal Codes',
+                    'match': f'{postal_matches} postal codes found',
+                    'file_path': file_path,
+                    'risk_score': 50
+                })
             
-            return matches
+            # Check for personal names
+            name_matches = 0
+            for pattern in self.personal_name_patterns:
+                matches = pattern.findall(content)
+                name_matches += len(matches)
             
-        except Exception as e:
-            logger.error(f"Error analyzing content in {file_path}: {e}")
-            return matches
+            if name_matches > 2:  # Only flag if multiple names found
+                findings.append({
+                    'type': 'personal_names',
+                    'severity': 'MEDIUM',
+                    'pattern': 'Personal Names',
+                    'match': f'{name_matches} names found',
+                    'file_path': file_path,
+                    'risk_score': 60
+                })
+            
+            # Check for addresses
+            address_matches = 0
+            for pattern in self.address_patterns:
+                matches = pattern.findall(content)
+                address_matches += len(matches)
+            
+            if address_matches > 0:
+                findings.append({
+                    'type': 'addresses',
+                    'severity': 'MEDIUM',
+                    'pattern': 'Addresses',
+                    'match': f'{address_matches} addresses found',
+                    'file_path': file_path,
+                    'risk_score': 65
+                })
+            
+            # Check for date of birth
+            for pattern in self.dob_patterns:
+                matches = pattern.findall(content)
+                for match in matches:
+                    findings.append({
+                        'type': 'date_of_birth',
+                        'severity': 'HIGH',
+                        'pattern': 'Date of Birth',
+                        'match': match,
+                        'file_path': file_path,
+                        'risk_score': 75
+                    })
+            
+            # Check for license plates
+            for pattern in self.license_plate_patterns:
+                matches = pattern.findall(content)
+                for match in matches:
+                    findings.append({
+                        'type': 'license_plate',
+                        'severity': 'MEDIUM',
+                        'pattern': 'License Plate',
+                        'match': match,
+                        'file_path': file_path,
+                        'risk_score': 55
+                    })
+            
+            # Check for ID numbers
+            for pattern in self.id_number_patterns:
+                matches = pattern.findall(content)
+                for match in matches:
+                    findings.append({
+                        'type': 'id_number',
+                        'severity': 'HIGH',
+                        'pattern': 'ID Number',
+                        'match': match[:4] + '****',  # Mask sensitive part
+                        'file_path': file_path,
+                        'risk_score': 70
+                    })
+            
+            # Check for financial data
+            for pattern in self.financial_patterns:
+                matches = pattern.findall(content)
+                for match in matches:
+                    findings.append({
+                        'type': 'financial_data',
+                        'severity': 'HIGH',
+                        'pattern': 'Financial Information',
+                        'match': 'Financial data found',
+                        'file_path': file_path,
+                        'risk_score': 80
+                    })
+            
+            # Check for business data
+            business_matches = 0
+            for pattern in self.business_data_patterns:
+                matches = pattern.findall(content)
+                business_matches += len(matches)
+            
+            if business_matches > 0:
+                findings.append({
+                    'type': 'business_data',
+                    'severity': 'MEDIUM',
+                    'pattern': 'Business Data',
+                    'match': f'{business_matches} business records found',
+                    'file_path': file_path,
+                    'risk_score': 65
+                })
+            
+            # Check for medical keywords
+            medical_matches = 0
+            for pattern in self.medical_keywords:
+                matches = pattern.findall(content)
+                medical_matches += len(matches)
+            
+            if medical_matches > 2:  # Only flag if multiple medical terms
+                findings.append({
+                    'type': 'medical_data',
+                    'severity': 'HIGH',
+                    'pattern': 'Medical Information',
+                    'match': f'{medical_matches} medical terms found',
+                    'file_path': file_path,
+                    'risk_score': 85
+                })
+        
+        # Check emails and phone numbers for all files
+        email_matches = self.email_pattern.findall(content)
+        filtered_emails = [email for email in email_matches if not self._is_common_email(email)]
+        
+        if len(filtered_emails) > 3:  # Multiple personal emails
+            findings.append({
+                'type': 'email_addresses',
+                'severity': 'MEDIUM',
+                'pattern': 'Email Addresses',
+                'match': f'{len(filtered_emails)} email addresses found',
+                'file_path': file_path,
+                'risk_score': 50
+            })
+        
+        # Check for phone numbers
+        phone_matches = 0
+        for pattern in self.phone_patterns:
+            matches = pattern.findall(content)
+            phone_matches += len(matches)
+        
+        if phone_matches > 0:
+            findings.append({
+                'type': 'phone_numbers',
+                'severity': 'MEDIUM',
+                'pattern': 'Phone Numbers',
+                'match': f'{phone_matches} phone numbers found',
+                'file_path': file_path,
+                'risk_score': 55
+            })
+        
+        # Check for BSN (Dutch social security numbers)
+        bsn_matches = self.bsn_pattern.findall(content)
+        if len(bsn_matches) > 0 and not is_code_file:
+            findings.append({
+                'type': 'bsn_number',
+                'severity': 'CRITICAL',
+                'pattern': 'BSN Number',
+                'match': f'{len(bsn_matches)} BSN numbers found',
+                'file_path': file_path,
+                'risk_score': 95
+            })
+        
+        # Check for credit card numbers
+        cc_matches = 0
+        for pattern in self.credit_card_patterns:
+            matches = pattern.findall(content)
+            cc_matches += len(matches)
+        
+        if cc_matches > 0 and not is_code_file:
+            findings.append({
+                'type': 'credit_card',
+                'severity': 'CRITICAL',
+                'pattern': 'Credit Card Number',
+                'match': f'{cc_matches} credit card numbers found',
+                'file_path': file_path,
+                'risk_score': 90
+            })
+        
+        return findings
     
     def _find_api_keys(self, content: str, file_path: str) -> List[Dict[str, Any]]:
         """Find API keys and tokens in content"""
@@ -436,3 +727,27 @@ class ContentAnalyzer:
     def _mask_credit_card(self, cc_number: str) -> str:
         """Mask credit card number"""
         return cc_number[:4] + '*' * (len(cc_number) - 8) + cc_number[-4:]
+    
+    def _is_placeholder_value(self, value: str) -> bool:
+        """Check if a value is likely a placeholder"""
+        placeholder_indicators = [
+            'your_', 'example', 'placeholder', 'replace_me', 'change_me',
+            'insert_', 'add_your', 'xxx', 'yyy', 'zzz', 'demo', 'test',
+            'sample', 'dummy', 'fake', 'mock'
+        ]
+        
+        if not value or len(value) < 6:
+            return True
+            
+        value_lower = value.lower()
+        return any(indicator in value_lower for indicator in placeholder_indicators)
+    
+    def _is_common_email(self, email: str) -> bool:
+        """Check if email is a common non-personal address"""
+        common_domains = [
+            'example.com', 'test.com', 'demo.com', 'localhost',
+            'noreply@', 'no-reply@', 'admin@', 'support@', 'info@'
+        ]
+        
+        email_lower = email.lower()
+        return any(domain in email_lower for domain in common_domains)

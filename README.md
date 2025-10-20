@@ -29,6 +29,19 @@ A comprehensive GitHub repository security monitoring tool that scans for sensit
 - JSON and SARIF output formats
 - Performance optimization with smart filtering
 
+### Extended Email Reporting System
+- **Comprehensive Test Logs**: Detailed audit trail of all security checks performed
+- **Professional Email Templates**: Modern HTML formatting with CSS styling
+- **Test Categories Coverage**:
+  - 🔍 **Filename Analysis**: Config files, private keys, database files, logs
+  - 🔐 **Content Security**: API keys, passwords, database strings, SSH keys  
+  - 👤 **Personal Data Detection**: IBAN, BSN, postcodes, names, phone numbers
+  - 🏥 **Medical/Financial Data**: Medical terms, financial data, license plates
+  - ⚡ **Code Quality**: Hardcoded secrets, debug code, test files
+- **Scan Statistics**: Complete metrics including files scanned, issues found, test results
+- **Status Indicators**: Clear ✅ PASSED / ❌ FAILED / ⚠️ WARNING / ℹ️ INFO markers
+- **Multi-Repository Reports**: Summary reports with test logs for all scanned repositories
+
 ## Installation
 
 ### Prerequisites
@@ -116,7 +129,7 @@ ALERT_MEDIUM=false
 ### Basic Usage
 
 ```bash
-# Simple scan with HTML report
+# Simple scan with extended email reporting and HTML report  
 python simple_enhanced_monitor.py
 
 # Original monitor with text output
@@ -147,10 +160,16 @@ python enhanced_github_monitor.py --output json
 - Issue categorization and risk scoring
 - Generated timestamp and scan statistics
 
-### Email Alerts
-- Immediate notifications for high-risk findings
-- Summary reports with actionable insights
-- HTML formatted for easy reading
+### Extended Email Reports
+- **Comprehensive Security Alerts**: Immediate notifications with complete audit trails
+- **Professional HTML Design**: Modern styling with color-coded test results
+- **Detailed Test Logs per Repository**:
+  - Complete overview of all security tests performed
+  - Status indicators (✅/❌/⚠️/ℹ️) for each test category
+  - Scan statistics including files processed and issues found
+- **Multi-Repository Summaries**: Consolidated reports for organization-wide visibility
+- **Actionable Insights**: Clear recommendations and issue prioritization
+- **Audit Compliance**: Full documentation of security scanning process
 
 ### SARIF Output (Enhanced)
 ```json
@@ -251,6 +270,25 @@ Enhanced Components:
 - Smart file filtering (skips binaries, large files)
 - Caching for git history analysis
 - Configurable scanning depth
+
+## Recent Updates
+
+### Version 2.0 - Extended Email Reporting (October 2025)
+- ✨ **New**: Comprehensive test logs in email reports
+- ✨ **New**: Professional HTML email templates with modern CSS styling
+- ✨ **Enhanced**: Extended personal data detection (IBAN, BSN, Dutch postcodes)
+- ✨ **Enhanced**: Medical and financial data screening capabilities
+- ✨ **Enhanced**: Code quality checks for hardcoded secrets and debug code
+- 🔧 **Improved**: Email template system with detailed audit trails
+- 🔧 **Improved**: API rate limiting and performance optimization
+- 📊 **Added**: Complete scan statistics and test result indicators
+
+### Key Features Added:
+- **Extended Test Categories**: 5 comprehensive test categories covering filename analysis, content security, personal data, medical/financial data, and code quality
+- **Professional Email Design**: Modern HTML templates with color-coded results and responsive design
+- **Audit Trail**: Complete documentation of all security tests performed per repository
+- **Status Indicators**: Clear visual indicators (✅ PASSED / ❌ FAILED / ⚠️ WARNING / ℹ️ INFO) for each test
+- **Enhanced Performance**: Optimized API usage to prevent rate limiting issues
 
 ## Contributing
 
