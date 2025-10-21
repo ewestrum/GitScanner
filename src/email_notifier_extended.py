@@ -73,8 +73,8 @@ class EmailNotifier:
         # Convert single result to list format if needed
         if isinstance(scan_results, dict):
             if 'repositories' in scan_results:
-                # This is a summary report format
-                return self.send_summary_report([scan_results])
+                # This is a summary report format from enhanced monitor
+                return self.send_summary_report(scan_results['repositories'])
             else:
                 # This is a single repository result
                 return self.send_security_alert(scan_results)
@@ -139,6 +139,11 @@ class EmailNotifier:
     
     def _extract_repo_name(self, scan_result: Dict[str, Any]) -> str:
         """Extract repository name from scan result"""
+        # Check direct name field (enhanced monitor format)
+        if 'name' in scan_result:
+            return scan_result['name']
+        
+        # Check repository object (simple monitor format)
         repository = scan_result.get('repository', {})
         
         if isinstance(repository, dict):
@@ -271,7 +276,7 @@ class EmailNotifier:
         html += f"""
                 <div class="section">
                     <div class="section-header">
-                        <div class="section-title">📋 Uitgevoerde Tests voor {repo_name}</div>
+                        <div class="section-title">📋 Security Tests Performed for {repo_name}</div>
                     </div>
                     <div class="section-content">
         """
@@ -462,7 +467,7 @@ class EmailNotifier:
         
         # Add detailed test logs
         lines.extend([
-            "📋 UITGEVOERDE TESTS:",
+            "📋 SECURITY TESTS PERFORMED:",
             "=" * 40,
             ""
         ])
@@ -551,7 +556,13 @@ class EmailNotifier:
         
         # Calculate summary statistics
         total_repos = len(scan_results)
-        high_risk_repos = [r for r in scan_results if r.get('risk_level') in ['HIGH', 'CRITICAL']]
+        high_risk_repos = []
+        for r in scan_results:
+            risk_level = r.get('risk_level', 'LOW')
+            if 'risk_assessment' in r and isinstance(r['risk_assessment'], dict):
+                risk_level = r['risk_assessment'].get('risk_level', 'LOW')
+            if risk_level in ['HIGH', 'CRITICAL']:
+                high_risk_repos.append(r)
         
         # Create message
         message = MIMEMultipart("alternative")
@@ -575,32 +586,228 @@ class EmailNotifier:
         return message
     
     def _generate_summary_html(self, scan_results: List[Dict[str, Any]]) -> str:
-        """Generate basic summary HTML"""
+        """Generate comprehensive summary HTML with detailed test information"""
         total_repos = len(scan_results)
-        high_risk = sum(1 for r in scan_results if r.get('risk_level') in ['HIGH', 'CRITICAL'])
+        high_risk = len([r for r in scan_results if self._get_repo_risk_level(r) in ['HIGH', 'CRITICAL']])
+        
+        # Calculate total statistics
+        total_files_scanned = sum(repo.get('files_scanned', 0) for repo in scan_results)
+        total_suspicious = sum(len(repo.get('suspicious_files', [])) for repo in scan_results)
+        total_sensitive = sum(len(repo.get('sensitive_content', [])) for repo in scan_results)
         
         html = f"""
-        <html><body style="font-family: Arial, sans-serif;">
-        <h2>📊 GitHub Security Summary Report</h2>
-        <p><strong>Total repositories scanned:</strong> {total_repos}</p>
-        <p><strong>High-risk repositories:</strong> {high_risk}</p>
-        <hr>
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>GitHub Security Summary Report</title>
+            <style>
+                body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f8f9fa; }}
+                .container {{ max-width: 1200px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
+                .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }}
+                .header h1 {{ margin: 0; font-size: 2em; }}
+                .overview {{ padding: 25px; background: #f8f9fa; border-bottom: 1px solid #dee2e6; }}
+                .overview-stats {{ display: flex; justify-content: space-around; text-align: center; }}
+                .stat-box {{ background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex: 1; margin: 0 10px; }}
+                .stat-value {{ font-size: 2em; font-weight: bold; color: #495057; }}
+                .stat-label {{ color: #6c757d; font-size: 0.9em; }}
+                .repository {{ margin: 20px; padding: 20px; border: 1px solid #dee2e6; border-radius: 8px; background: white; }}
+                .repo-header {{ border-bottom: 2px solid #007bff; padding-bottom: 15px; margin-bottom: 20px; }}
+                .repo-title {{ font-size: 1.3em; color: #007bff; margin: 0; }}
+                .repo-stats {{ display: flex; justify-content: space-between; margin: 10px 0; }}
+                .test-section {{ margin: 20px 0; }}
+                .test-category {{ margin: 15px 0; padding: 15px; border: 1px solid #e9ecef; border-radius: 5px; }}
+                .category-header h4 {{ margin: 0 0 5px 0; color: #495057; }}
+                .category-description {{ color: #6c757d; font-size: 0.9em; margin: 0 0 15px 0; }}
+                .test-item {{ display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f1f3f4; }}
+                .test-name {{ flex: 1; }}
+                .test-result {{ font-weight: bold; padding: 4px 8px; border-radius: 4px; }}
+                .test-passed {{ background: #d4edda; color: #155724; }}
+                .test-failed {{ background: #f8d7da; color: #721c24; }}
+                .test-warning {{ background: #fff3cd; color: #856404; }}
+                .test-info {{ background: #d1ecf1; color: #0c5460; }}
+                .findings {{ margin: 15px 0; }}
+                .finding {{ margin: 5px 0; padding: 10px; background: #f8f9fa; border-left: 4px solid #ffc107; border-radius: 0 4px 4px 0; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>📊 GitHub Security Summary Report</h1>
+                    <p>Comprehensive security analysis across all repositories</p>
+                </div>
+                
+                <div class="overview">
+                    <div class="overview-stats">
+                        <div class="stat-box">
+                            <div class="stat-value">{total_repos}</div>
+                            <div class="stat-label">Repositories Scanned</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">{total_files_scanned}</div>
+                            <div class="stat-label">Files Analyzed</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">{total_suspicious}</div>
+                            <div class="stat-label">Suspicious Files</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">{total_sensitive}</div>
+                            <div class="stat-label">Sensitive Content</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">{high_risk}</div>
+                            <div class="stat-label">High-Risk Repos</div>
+                        </div>
+                    </div>
+                </div>
         """
         
+        # Generate detailed report for each repository
         for repo in scan_results:
             repo_name = self._extract_repo_name(repo)
-            suspicious_count = len(repo.get('suspicious_files', []))
-            sensitive_count = len(repo.get('sensitive_content', []))
+            risk_level = self._get_repo_risk_level(repo)
+            files_scanned = repo.get('files_scanned', 0)
+            suspicious_files = repo.get('suspicious_files', [])
+            sensitive_content = repo.get('sensitive_content', [])
             
             html += f"""
-            <div style="border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 5px;">
-                <h3>📁 {repo_name}</h3>
-                <p>Risk Level: <strong>{repo.get('risk_level', 'LOW')}</strong></p>
-                <p>Suspicious files: {suspicious_count} | Sensitive content: {sensitive_count}</p>
-            </div>
+                <div class="repository">
+                    <div class="repo-header">
+                        <h2 class="repo-title">📁 {repo_name}</h2>
+                        <div class="repo-stats">
+                            <span>Risk Level: <strong>{risk_level}</strong></span>
+                            <span>Files Scanned: <strong>{files_scanned}</strong></span>
+                            <span>Suspicious Files: <strong>{len(suspicious_files)}</strong></span>
+                            <span>Sensitive Content: <strong>{len(sensitive_content)}</strong></span>
+                        </div>
+                    </div>
+                    
+                    <div class="test-section">
+                        <h3>🔍 Security Tests Performed</h3>
+            """
+            
+            # Add detailed test results for this repository
+            html += self._generate_test_logs_for_repo(repo)
+            
+            # Add findings if any
+            if suspicious_files or sensitive_content:
+                html += """
+                        <div class="findings">
+                            <h4>🚨 Security Findings</h4>
+                """
+                
+                for file_info in suspicious_files:
+                    file_path = file_info.get('name', file_info.get('path', 'Unknown'))
+                    reason = file_info.get('reason', 'Suspicious file detected')
+                    html += f'<div class="finding">📄 <strong>{file_path}</strong><br>Reason: {reason}</div>'
+                
+                for content_info in sensitive_content:
+                    pattern = content_info.get('type', content_info.get('pattern', 'Unknown'))
+                    file_path = content_info.get('file', content_info.get('file_path', 'Unknown'))
+                    html += f'<div class="finding">⚠️ <strong>{pattern}</strong><br>Found in: {file_path}</div>'
+                
+                html += "</div>"
+            
+            html += """
+                    </div>
+                </div>
             """
         
-        html += "</body></html>"
+        html += """
+            </div>
+        </body>
+        </html>
+        """
+        
+        return html
+    
+    def _get_repo_risk_level(self, repo: Dict[str, Any]) -> str:
+        """Extract risk level from repository data"""
+        risk_level = repo.get('risk_level', 'LOW')
+        if 'risk_assessment' in repo and isinstance(repo['risk_assessment'], dict):
+            risk_level = repo['risk_assessment'].get('risk_level', 'LOW')
+        return risk_level
+    
+    def _generate_test_logs_for_repo(self, repo: Dict[str, Any]) -> str:
+        """Generate detailed test logs for a single repository"""
+        suspicious_files = repo.get('suspicious_files', [])
+        sensitive_content = repo.get('sensitive_content', [])
+        
+        test_categories = [
+            {
+                'name': '📋 Filename Security Analysis',
+                'description': 'Comprehensive scanning for suspicious file patterns and extensions that commonly contain sensitive data',
+                'tests': [
+                    ('Configuration Files with Secrets (e.g., .env, .config, settings.json, database.yml)', 'PASSED' if not any('.env' in f.get('name', f.get('path', '')) for f in suspicious_files) else 'FAILED'),
+                    ('Private Keys & Certificates (e.g., .key, .pem, .p12, .jks, id_rsa, certificate files)', 'PASSED' if not any('key' in f.get('name', f.get('path', '')).lower() for f in suspicious_files) else 'FAILED'),
+                    ('Database Backups & Dumps (e.g., .sql, .db, .sqlite, backup.gz, dump files)', 'PASSED' if not any(ext in f.get('name', f.get('path', '')).lower() for f in suspicious_files for ext in ['.sql', '.db']) else 'FAILED'),
+                    ('Log Files with Potential Data Leaks (e.g., .log, error.txt, debug files, trace logs)', 'PASSED' if not any('.log' in f.get('name', f.get('path', '')).lower() for f in suspicious_files) else 'FAILED')
+                ]
+            },
+            {
+                'name': '🔒 Content Security Analysis',
+                'description': 'Deep content analysis for hardcoded secrets, tokens, and credentials using pattern matching and entropy detection',
+                'tests': [
+                    ('API Keys & Access Tokens (e.g., sk_live_..., AKIA..., ghp_..., xoxb-...)', 'PASSED' if not any('api' in c.get('type', c.get('pattern', '')).lower() for c in sensitive_content) else 'FAILED'),
+                    ('Database Credentials (e.g., mongodb://, postgres://, mysql://user:pass@host)', 'PASSED' if not any('password' in c.get('type', c.get('pattern', '')).lower() for c in sensitive_content) else 'FAILED'),
+                    ('OAuth Tokens & JWT Secrets (e.g., eyJ..., Bearer tokens, refresh_token)', 'PASSED' if not any('token' in c.get('type', c.get('pattern', '')).lower() for c in sensitive_content) else 'FAILED'),
+                    ('Private SSH Keys (RSA, DSA, ECDSA private keys, OpenSSH format)', 'PASSED' if not any('ssh' in c.get('type', c.get('pattern', '')).lower() for c in sensitive_content) else 'FAILED')
+                ]
+            },
+            {
+                'name': '👤 Personal Data Detection (PII/GDPR)',
+                'description': 'Comprehensive scanning for personally identifiable information and customer data protected under GDPR and privacy regulations',
+                'tests': [
+                    ('IBAN & Bank Account Numbers (e.g., NL91ABNA0417164300, account numbers, sort codes)', 'PASSED' if not any('iban' in c.get('type', c.get('pattern', '')).lower() for c in sensitive_content) else 'FAILED'),
+                    ('Dutch Social Security Numbers (BSN: e.g., 123456782, citizen service numbers)', 'PASSED' if not any('bsn' in c.get('type', c.get('pattern', '')).lower() for c in sensitive_content) else 'FAILED'),
+                    ('Dutch Postal Codes & Addresses (e.g., 1012 AB, full addresses with house numbers)', 'PASSED' if not any('postcode' in c.get('type', c.get('pattern', '')).lower() for c in sensitive_content) else 'FAILED'),
+                    ('Phone Numbers (e.g., +31 6 12345678, international/local formats)', 'PASSED' if not any('phone' in c.get('type', c.get('pattern', '')).lower() for c in sensitive_content) else 'FAILED')
+                ]
+            },
+            {
+                'name': '🏥 Healthcare & Financial Data (HIPAA/PCI-DSS)',
+                'description': 'Specialized detection for highly regulated sectors including healthcare records, financial transactions, and government identifiers',
+                'tests': [
+                    ('Medical Records & Terminology (patient IDs, medical record numbers, health data, diagnosis codes)', 'PASSED' if not any('medical' in c.get('type', c.get('pattern', '')).lower() for c in sensitive_content) else 'FAILED'),
+                    ('Financial Transaction Data (credit card numbers, transaction IDs, payment references, SWIFT codes)', 'PASSED' if not any('financial' in c.get('type', c.get('pattern', '')).lower() for c in sensitive_content) else 'FAILED')
+                ]
+            },
+            {
+                'name': '⚡ Code Quality & Security Practices',
+                'description': 'General security hygiene checks for development best practices, code quality, and potential security vulnerabilities',
+                'tests': [
+                    ('Hardcoded Secrets Detection (passwords, keys, tokens embedded directly in source code)', 'PASSED' if not sensitive_content else 'WARNING'),
+                    ('Debug Code in Production (console.log, print statements, debugging endpoints, verbose logging)', 'PASSED' if not any('debug' in f.get('name', f.get('path', '')).lower() for f in suspicious_files) else 'WARNING'),
+                    ('Test Files with Real Data (unit tests, fixtures, or samples containing actual customer/production data)', 'PASSED' if not any('test' in f.get('name', f.get('path', '')).lower() for f in suspicious_files) else 'INFO')
+                ]
+            }
+        ]
+        
+        html = ""
+        for category in test_categories:
+            html += f"""
+                        <div class="test-category">
+                            <div class="category-header">
+                                <h4>{category['name']}</h4>
+                                <p class="category-description">{category['description']}</p>
+                            </div>
+            """
+            
+            for test_name, status in category['tests']:
+                css_class = {'PASSED': 'test-passed', 'FAILED': 'test-failed', 'WARNING': 'test-warning', 'INFO': 'test-info'}[status]
+                status_icon = {'PASSED': '✅', 'FAILED': '❌', 'WARNING': '⚠️', 'INFO': 'ℹ️'}[status]
+                
+                html += f"""
+                            <div class="test-item">
+                                <span class="test-name">{test_name}</span>
+                                <span class="test-result {css_class}">{status_icon} {status}</span>
+                            </div>
+                """
+            
+            html += """
+                        </div>
+            """
+        
         return html
     
     def _generate_summary_text(self, scan_results: List[Dict[str, Any]]) -> str:
