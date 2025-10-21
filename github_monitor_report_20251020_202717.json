@@ -1,0 +1,18 @@
+{
+  "format": "github-monitor-json",
+  "version": "1.0",
+  "timestamp": "2025-10-20T18:27:16.818681+00:00",
+  "summary": {
+    "total_repositories": 0,
+    "repositories_with_issues": 0,
+    "total_findings": 0,
+    "critical_findings": 0,
+    "high_risk_findings": 0,
+    "scan_duration": null
+  },
+  "repositories": [],
+  "configuration": {
+    "redact_secrets": true,
+    "output_format": "json"
+  }
+}

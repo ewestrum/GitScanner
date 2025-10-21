@@ -1,0 +1,112 @@
+2025-10-20 18:57:59,523 - src.config_manager - INFO - Loaded configuration from .env
+2025-10-20 18:57:59,523 - src.config_manager - INFO - Configuration validation passed
+2025-10-20 18:57:59,523 - src.config_manager - INFO - Configuration manager initialized
+2025-10-20 18:57:59,523 - src.github_client - INFO - GitHub client initialized
+2025-10-20 18:57:59,524 - src.file_scanner - INFO - File scanner initialized
+2025-10-20 18:57:59,527 - src.content_analyzer - INFO - Content analyzer initialized
+2025-10-20 18:57:59,528 - src.email_notifier - INFO - Email notifier initialized
+2025-10-20 18:57:59,528 - __main__ - INFO - GitHub Monitor initialized
+2025-10-20 18:57:59,528 - __main__ - INFO - Starting GitHub security monitoring...
+2025-10-20 18:57:59,528 - __main__ - INFO - Starting scan of all repositories
+2025-10-20 18:57:59,529 - src.github_client - INFO - Fetching user repositories
+2025-10-20 18:58:00,093 - src.github_client - INFO - Found 0 repositories
+2025-10-20 18:58:00,093 - __main__ - INFO - Found 0 repositories to scan
+2025-10-20 18:58:00,093 - __main__ - INFO - Completed scan of 0 repositories
+2025-10-20 18:58:00,094 - __main__ - INFO - Security report saved to: github_security_report_20251020_185800.txt
+2025-10-20 18:59:44,240 - config_manager - INFO - Loaded configuration from .env
+2025-10-20 18:59:44,240 - config_manager - INFO - Configuration validation passed
+2025-10-20 18:59:44,240 - config_manager - INFO - Configuration manager initialized
+2025-10-20 19:00:31,616 - src.config_manager - INFO - Loaded configuration from .env
+2025-10-20 19:00:31,616 - src.config_manager - INFO - Configuration validation passed
+2025-10-20 19:00:31,616 - src.config_manager - INFO - Configuration manager initialized
+2025-10-20 19:00:31,617 - src.github_client - INFO - GitHub client initialized
+2025-10-20 19:00:31,618 - src.file_scanner - INFO - File scanner initialized
+2025-10-20 19:00:31,621 - src.content_analyzer - INFO - Content analyzer initialized
+2025-10-20 19:00:31,621 - src.email_notifier - INFO - Email notifier initialized
+2025-10-20 19:00:31,621 - github_monitor - INFO - GitHub Monitor initialized
+2025-10-20 19:00:31,621 - github_monitor - INFO - Starting scan of all repositories
+2025-10-20 19:00:31,621 - src.github_client - INFO - Fetching user repositories
+2025-10-20 19:00:32,136 - src.github_client - INFO - Authenticated as user: ewestrum
+2025-10-20 19:00:32,136 - src.github_client - INFO - User has 0 public repos, 0 private repos
+2025-10-20 19:00:32,136 - src.github_client - INFO - Requesting repositories page 1 with params: {'page': 1, 'per_page': 100, 'type': 'all', 'sort': 'updated', 'direction': 'desc'}
+2025-10-20 19:00:33,422 - src.github_client - INFO - No more repositories found on page 1
+2025-10-20 19:00:33,422 - src.github_client - INFO - Found 0 repositories
+2025-10-20 19:00:33,422 - github_monitor - INFO - Found 0 repositories to scan
+2025-10-20 19:00:33,422 - github_monitor - INFO - Completed scan of 0 repositories
+2025-10-20 19:03:23,597 - src.config_manager - INFO - Loaded configuration from .env
+2025-10-20 19:03:23,597 - src.config_manager - INFO - Configuration validation passed
+2025-10-20 19:03:23,597 - src.config_manager - INFO - Configuration manager initialized
+2025-10-20 19:03:23,598 - src.github_client - INFO - GitHub client initialized
+2025-10-20 19:03:23,599 - src.file_scanner - INFO - File scanner initialized
+2025-10-20 19:03:23,601 - src.content_analyzer - INFO - Content analyzer initialized
+2025-10-20 19:03:23,602 - src.email_notifier - INFO - Email notifier initialized
+2025-10-20 19:03:23,602 - github_monitor - INFO - GitHub Monitor initialized
+2025-10-20 19:03:23,602 - github_monitor - INFO - Starting scan of all repositories
+2025-10-20 19:03:23,602 - src.github_client - INFO - Fetching user repositories
+2025-10-20 19:03:24,109 - src.github_client - INFO - Authenticated as user: ewestrum
+2025-10-20 19:03:24,109 - src.github_client - INFO - User has 0 public repos, 0 private repos
+2025-10-20 19:03:24,110 - src.github_client - INFO - Requesting repositories page 1 with params: {'page': 1, 'per_page': 100, 'type': 'all', 'sort': 'updated', 'direction': 'desc'}
+2025-10-20 19:03:25,493 - src.github_client - INFO - Found 4 repositories on page 1
+2025-10-20 19:03:25,494 - src.github_client - INFO - Reached last page - got 4 repos (less than 100)
+2025-10-20 19:03:25,494 - src.github_client - INFO - Found 4 repositories
+2025-10-20 19:03:25,494 - github_monitor - INFO - Found 4 repositories to scan
+2025-10-20 19:03:25,494 - github_monitor - INFO - Scanning repository: AnimatronicMask
+2025-10-20 19:03:39,452 - github_monitor - INFO - Scanning repository: WaterClockLabTube
+2025-10-20 19:04:02,022 - src.email_notifier - INFO - Email sent successfully to 1 recipients
+2025-10-20 19:04:02,037 - github_monitor - INFO - Security alert sent for repository: WaterClockLabTube
+2025-10-20 19:04:03,037 - github_monitor - INFO - Scanning repository: WLED_PCB_KiCAD
+2025-10-20 19:04:06,917 - github_monitor - INFO - Scanning repository: ESP32_Wifi_Controller
+2025-10-20 19:04:28,067 - github_monitor - INFO - Completed scan of 4 repositories
+2025-10-20 20:45:48,954 - src.config_manager - INFO - Loaded configuration from .env
+2025-10-20 20:45:48,954 - src.config_manager - INFO - Configuration validation passed
+2025-10-20 20:45:48,954 - src.config_manager - INFO - Configuration manager initialized
+2025-10-20 20:45:48,955 - src.github_client - INFO - GitHub client initialized
+2025-10-20 20:45:48,956 - src.file_scanner - INFO - File scanner initialized
+2025-10-20 20:45:48,959 - src.content_analyzer - INFO - Content analyzer initialized
+2025-10-20 20:45:48,959 - src.email_notifier - INFO - Email notifier initialized
+2025-10-20 20:45:48,959 - __main__ - INFO - GitHub Monitor initialized
+2025-10-20 20:45:48,960 - __main__ - INFO - Starting GitHub security monitoring...
+2025-10-20 20:45:48,960 - __main__ - INFO - Starting scan of all repositories
+2025-10-20 20:45:48,960 - src.github_client - INFO - Fetching user repositories
+2025-10-20 20:45:49,504 - src.github_client - INFO - Authenticated as user: ewestrum
+2025-10-20 20:45:49,505 - src.github_client - INFO - User has 1 public repos, 0 private repos
+2025-10-20 20:45:49,505 - src.github_client - INFO - Requesting repositories page 1 with params: {'page': 1, 'per_page': 100, 'type': 'all', 'sort': 'updated', 'direction': 'desc'}
+2025-10-20 20:45:50,803 - src.github_client - INFO - Found 5 repositories on page 1
+2025-10-20 20:45:50,804 - src.github_client - INFO - Reached last page - got 5 repos (less than 100)
+2025-10-20 20:45:50,804 - src.github_client - INFO - Found 5 repositories
+2025-10-20 20:45:50,804 - __main__ - INFO - Found 5 repositories to scan
+2025-10-20 20:45:50,805 - __main__ - INFO - Scanning repository: GitScanner
+2025-10-20 20:46:14,745 - src.email_notifier - INFO - Email sent successfully to 1 recipients
+2025-10-20 20:46:14,762 - __main__ - INFO - Security alert sent for repository: GitScanner
+2025-10-20 20:46:15,763 - __main__ - INFO - Scanning repository: AnimatronicMask
+2025-10-20 20:46:28,518 - __main__ - INFO - Scanning repository: WaterClockLabTube
+2025-10-20 20:46:51,002 - src.email_notifier - INFO - Email sent successfully to 1 recipients
+2025-10-20 20:46:51,020 - __main__ - INFO - Security alert sent for repository: WaterClockLabTube
+2025-10-20 20:46:52,020 - __main__ - INFO - Scanning repository: WLED_PCB_KiCAD
+2025-10-20 20:46:55,985 - __main__ - INFO - Scanning repository: ESP32_Wifi_Controller
+2025-10-20 20:47:18,166 - __main__ - INFO - Completed scan of 5 repositories
+2025-10-20 20:47:18,168 - __main__ - INFO - Security report saved to: github_security_report_20251020_204718.txt
+2025-10-20 20:47:18,168 - __main__ - WARNING - CRITICAL SECURITY ISSUES FOUND in 2 repositories!
+2025-10-20 20:57:00,204 - src.config_manager - INFO - Loaded configuration from .env
+2025-10-20 20:57:00,204 - src.config_manager - INFO - Configuration validation passed
+2025-10-20 20:57:00,205 - src.config_manager - INFO - Configuration manager initialized
+2025-10-20 20:57:00,205 - src.github_client - INFO - GitHub client initialized
+2025-10-20 20:57:00,206 - src.file_scanner - INFO - File scanner initialized
+2025-10-20 20:57:00,211 - src.content_analyzer - INFO - Content analyzer initialized
+2025-10-20 20:57:00,211 - src.email_notifier - INFO - Email notifier initialized
+2025-10-20 20:57:00,211 - __main__ - INFO - GitHub Monitor initialized
+2025-10-20 20:57:00,211 - __main__ - INFO - Starting GitHub security monitoring...
+2025-10-20 20:57:00,211 - __main__ - INFO - Starting scan of all repositories
+2025-10-20 20:57:00,211 - src.github_client - INFO - Fetching user repositories
+2025-10-20 20:57:00,712 - src.github_client - INFO - Authenticated as user: ewestrum
+2025-10-20 20:57:00,713 - src.github_client - INFO - User has 1 public repos, 0 private repos
+2025-10-20 20:57:00,713 - src.github_client - INFO - Requesting repositories page 1 with params: {'page': 1, 'per_page': 100, 'type': 'all', 'sort': 'updated', 'direction': 'desc'}
+2025-10-20 20:57:02,019 - src.github_client - INFO - Found 5 repositories on page 1
+2025-10-20 20:57:02,020 - src.github_client - INFO - Reached last page - got 5 repos (less than 100)
+2025-10-20 20:57:02,020 - src.github_client - INFO - Found 5 repositories
+2025-10-20 20:57:02,020 - __main__ - INFO - Found 5 repositories to scan
+2025-10-20 20:57:02,020 - __main__ - INFO - Scanning repository: GitScanner
+2025-10-20 20:57:23,585 - src.email_notifier - INFO - Email sent successfully to 1 recipients
+2025-10-20 20:57:23,604 - __main__ - INFO - Security alert sent for repository: GitScanner
+2025-10-20 20:57:24,604 - __main__ - INFO - Scanning repository: AnimatronicMask
+2025-10-20 20:57:37,335 - __main__ - INFO - Scanning repository: WaterClockLabTube

@@ -63,7 +63,7 @@ class ConfigManager:
             # Scanning Configuration
             'SCAN_PRIVATE_REPOS': os.getenv('SCAN_PRIVATE_REPOS', 'true').lower() == 'true',
             'SCAN_DEPTH': int(os.getenv('SCAN_DEPTH', '2')),
-            'MAX_FILE_SIZE': int(os.getenv('MAX_FILE_SIZE', '1048576')),  # 1MB
+                    'MAX_FILE_SIZE': 100 * 1024 * 1024,  # 100MB - increased for security scanning
             'RATE_LIMIT_DELAY': float(os.getenv('RATE_LIMIT_DELAY', '1.0')),
             
             # Alert Configuration

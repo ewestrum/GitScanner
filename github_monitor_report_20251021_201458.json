@@ -1,0 +1,184 @@
+{
+  "format": "github-monitor-json",
+  "version": "1.0",
+  "timestamp": "2025-10-21T18:14:48.143685+00:00",
+  "summary": {
+    "total_repositories": 5,
+    "repositories_with_issues": 0,
+    "total_findings": 0,
+    "critical_findings": 0,
+    "high_risk_findings": 0,
+    "scan_duration": null
+  },
+  "repositories": [
+    {
+      "repository": {
+        "name": "GitScanner",
+        "url": "https://github.com/ewestrum/GitScanner",
+        "private": false,
+        "description": "GitScanner demo for myself",
+        "default_branch": "master"
+      },
+      "scan_info": {
+        "scan_timestamp": "2025-10-21T18:14:48.143685+00:00",
+        "scan_duration": 1.3062336444854736,
+        "files_scanned": 68,
+        "total_findings": 0
+      },
+      "risk_assessment": {
+        "overall_score": 0.0,
+        "risk_level": "INFO",
+        "risk_distribution": {},
+        "max_individual_score": 0.0,
+        "average_score": 0.0
+      },
+      "findings": [],
+      "git_history": {
+        "commits_analyzed": 0,
+        "matches": []
+      },
+      "file_analysis": {
+        "total_files": 68,
+        "scanned_files": 68,
+        "file_types": {},
+        "large_files_skipped": 0
+      }
+    },
+    {
+      "repository": {
+        "name": "AnimatronicMask",
+        "url": "https://github.com/ewestrum/AnimatronicMask",
+        "private": true,
+        "description": "ESP32-C3 Animatronic Eye Controller with Web Portal and Custom Eye Upload System",
+        "default_branch": "master"
+      },
+      "scan_info": {
+        "scan_timestamp": "2025-10-21T18:14:48.143685+00:00",
+        "scan_duration": 1.6748347282409668,
+        "files_scanned": 39,
+        "total_findings": 0
+      },
+      "risk_assessment": {
+        "overall_score": 0.0,
+        "risk_level": "INFO",
+        "risk_distribution": {},
+        "max_individual_score": 0.0,
+        "average_score": 0.0
+      },
+      "findings": [],
+      "git_history": {
+        "commits_analyzed": 0,
+        "matches": []
+      },
+      "file_analysis": {
+        "total_files": 39,
+        "scanned_files": 39,
+        "file_types": {},
+        "large_files_skipped": 0
+      }
+    },
+    {
+      "repository": {
+        "name": "WaterClockLabTube",
+        "url": "https://github.com/ewestrum/WaterClockLabTube",
+        "private": true,
+        "description": "Use LabTube and bottles to build a clock",
+        "default_branch": "main"
+      },
+      "scan_info": {
+        "scan_timestamp": "2025-10-21T18:14:48.143685+00:00",
+        "scan_duration": 1.6447863578796387,
+        "files_scanned": 52,
+        "total_findings": 0
+      },
+      "risk_assessment": {
+        "overall_score": 0.0,
+        "risk_level": "INFO",
+        "risk_distribution": {},
+        "max_individual_score": 0.0,
+        "average_score": 0.0
+      },
+      "findings": [],
+      "git_history": {
+        "commits_analyzed": 0,
+        "matches": []
+      },
+      "file_analysis": {
+        "total_files": 52,
+        "scanned_files": 52,
+        "file_types": {},
+        "large_files_skipped": 0
+      }
+    },
+    {
+      "repository": {
+        "name": "WLED_PCB_KiCAD",
+        "url": "https://github.com/ewestrum/WLED_PCB_KiCAD",
+        "private": true,
+        "description": null,
+        "default_branch": "main"
+      },
+      "scan_info": {
+        "scan_timestamp": "2025-10-21T18:14:48.143685+00:00",
+        "scan_duration": 1.5925805568695068,
+        "files_scanned": 34,
+        "total_findings": 0
+      },
+      "risk_assessment": {
+        "overall_score": 0.0,
+        "risk_level": "INFO",
+        "risk_distribution": {},
+        "max_individual_score": 0.0,
+        "average_score": 0.0
+      },
+      "findings": [],
+      "git_history": {
+        "commits_analyzed": 0,
+        "matches": []
+      },
+      "file_analysis": {
+        "total_files": 34,
+        "scanned_files": 34,
+        "file_types": {},
+        "large_files_skipped": 0
+      }
+    },
+    {
+      "repository": {
+        "name": "ESP32_Wifi_Controller",
+        "url": "https://github.com/ewestrum/ESP32_Wifi_Controller",
+        "private": true,
+        "description": "First test on a wifi controller",
+        "default_branch": "main"
+      },
+      "scan_info": {
+        "scan_timestamp": "2025-10-21T18:14:48.143685+00:00",
+        "scan_duration": 1.634272575378418,
+        "files_scanned": 55,
+        "total_findings": 0
+      },
+      "risk_assessment": {
+        "overall_score": 0.0,
+        "risk_level": "INFO",
+        "risk_distribution": {},
+        "max_individual_score": 0.0,
+        "average_score": 0.0
+      },
+      "findings": [],
+      "git_history": {
+        "commits_analyzed": 0,
+        "matches": []
+      },
+      "file_analysis": {
+        "total_files": 55,
+        "scanned_files": 55,
+        "file_types": {},
+        "large_files_skipped": 0
+      }
+    }
+  ],
+  "configuration": {
+    "redact_secrets": true,
+    "output_format": "json"
+  }
+}

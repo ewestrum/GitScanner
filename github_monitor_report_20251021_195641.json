@@ -1,0 +1,114 @@
+{
+  "format": "github-monitor-json",
+  "version": "1.0",
+  "timestamp": "2025-10-21T17:56:39.077806+00:00",
+  "summary": {
+    "total_repositories": 5,
+    "repositories_with_issues": 0,
+    "total_findings": 0,
+    "critical_findings": 0,
+    "high_risk_findings": 0,
+    "scan_duration": null
+  },
+  "repositories": [
+    {
+      "repository": {
+        "name": "GitScanner",
+        "url": null,
+        "private": false,
+        "description": null,
+        "default_branch": null
+      },
+      "scan_info": {
+        "scan_timestamp": "2025-10-21T17:56:39.077806+00:00",
+        "scan_duration": null,
+        "files_scanned": 0,
+        "total_findings": 0
+      },
+      "risk_assessment": {},
+      "findings": [],
+      "git_history": {},
+      "file_analysis": {}
+    },
+    {
+      "repository": {
+        "name": "AnimatronicMask",
+        "url": null,
+        "private": false,
+        "description": null,
+        "default_branch": null
+      },
+      "scan_info": {
+        "scan_timestamp": "2025-10-21T17:56:39.077806+00:00",
+        "scan_duration": null,
+        "files_scanned": 0,
+        "total_findings": 0
+      },
+      "risk_assessment": {},
+      "findings": [],
+      "git_history": {},
+      "file_analysis": {}
+    },
+    {
+      "repository": {
+        "name": "WaterClockLabTube",
+        "url": null,
+        "private": false,
+        "description": null,
+        "default_branch": null
+      },
+      "scan_info": {
+        "scan_timestamp": "2025-10-21T17:56:39.077806+00:00",
+        "scan_duration": null,
+        "files_scanned": 0,
+        "total_findings": 0
+      },
+      "risk_assessment": {},
+      "findings": [],
+      "git_history": {},
+      "file_analysis": {}
+    },
+    {
+      "repository": {
+        "name": "WLED_PCB_KiCAD",
+        "url": null,
+        "private": false,
+        "description": null,
+        "default_branch": null
+      },
+      "scan_info": {
+        "scan_timestamp": "2025-10-21T17:56:39.077806+00:00",
+        "scan_duration": null,
+        "files_scanned": 0,
+        "total_findings": 0
+      },
+      "risk_assessment": {},
+      "findings": [],
+      "git_history": {},
+      "file_analysis": {}
+    },
+    {
+      "repository": {
+        "name": "ESP32_Wifi_Controller",
+        "url": null,
+        "private": false,
+        "description": null,
+        "default_branch": null
+      },
+      "scan_info": {
+        "scan_timestamp": "2025-10-21T17:56:39.077806+00:00",
+        "scan_duration": null,
+        "files_scanned": 0,
+        "total_findings": 0
+      },
+      "risk_assessment": {},
+      "findings": [],
+      "git_history": {},
+      "file_analysis": {}
+    }
+  ],
+  "configuration": {
+    "redact_secrets": true,
+    "output_format": "json"
+  }
+}

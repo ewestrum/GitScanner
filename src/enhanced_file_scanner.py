@@ -38,8 +38,13 @@ class EnhancedFileScanner:
             scan_rules: Dictionary containing scanning rules and patterns
         """
         self.scan_rules = scan_rules
-        self.max_text_size = scan_rules.get('max_text_size', 2 * 1024 * 1024)  # 2MB
-        self.max_binary_size = scan_rules.get('max_binary_size', 10 * 1024 * 1024)  # 10MB
+        # Increased limits for security scanning - large files are often data leaks
+        self.max_text_size = scan_rules.get('max_text_size', 100 * 1024 * 1024)  # 100MB
+        self.max_binary_size = scan_rules.get('max_binary_size', 500 * 1024 * 1024)  # 500MB
+        
+        # Thresholds for reporting large files as suspicious
+        self.large_text_threshold = 10 * 1024 * 1024  # 10MB
+        self.large_binary_threshold = 50 * 1024 * 1024  # 50MB
         
         # Initialize magic for MIME detection if available
         self.magic_mime = None
@@ -288,8 +293,16 @@ class EnhancedFileScanner:
         
         # Check size (very large text files might be data dumps)
         size = file_info.get('size', 0)
-        if file_info['is_text'] and size > 10 * 1024 * 1024:  # 10MB
-            reasons.append(f"Large text file ({size // 1024 // 1024}MB) - possible data dump")
+        if size is None:
+            size = 0
+        
+        # Report large files as suspicious - they often contain leaked data
+        if file_info['is_text'] and size > self.large_text_threshold:
+            size_mb = size // 1024 // 1024
+            reasons.append(f"Large text file ({size_mb}MB) - potential database dump, logs with sensitive data, or data export")
+        elif file_info['is_binary'] and size > self.large_binary_threshold:
+            size_mb = size // 1024 // 1024
+            reasons.append(f"Large binary file ({size_mb}MB) - potential database backup, encrypted archive, or data dump")
         
         return len(reasons) > 0, reasons
     
@@ -460,6 +473,8 @@ class EnhancedFileScanner:
     def is_size_appropriate(self, file_info: Dict[str, Any]) -> bool:
         """Check if file size is appropriate for processing"""
         size = file_info.get('size', 0)
+        if size is None:
+            size = 0
         
         if file_info['is_text']:
             return size <= self.max_text_size
@@ -485,13 +500,20 @@ class EnhancedFileScanner:
             })
             return recommendation
         
-        # Skip if file is too large
+        # Large files should be scanned for security - they're often data leaks
+        size = file_info.get('size', 0)
+        if size is None:
+            size = 0
+        
         if not self.is_size_appropriate(file_info):
-            recommendation.update({
-                'scan_metadata_only': True,
-                'reason': f'File too large ({file_info.get("size", 0)} bytes)'
-            })
-            return recommendation
+            # For extremely large files (>500MB), do metadata scan but flag as suspicious
+            if size > 500 * 1024 * 1024:
+                recommendation.update({
+                    'scan_metadata_only': True,
+                    'reason': f'Extremely large file ({size // 1024 // 1024}MB) - flagged as suspicious, metadata scan only for performance'
+                })
+                return recommendation
+            # Otherwise, scan the content - large files are important for security
         
         # Skip binary files (scan metadata only)
         if file_info['is_binary']:

@@ -1,0 +1,243 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>GitHub Security Alert - ewestrum/TestRepo</title>
+        <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%); color: white; padding: 30px; border-radius: 8px; text-align: center; margin-bottom: 20px; }
+            .section { background: white; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+            .section-header { background: #f8f9fa; padding: 15px; border-bottom: 1px solid #dee2e6; border-radius: 8px 8px 0 0; }
+            .section-content { padding: 20px; }
+            .test-category { margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 6px; }
+            .test-item { display: flex; align-items: center; padding: 8px; margin: 5px 0; border-radius: 4px; }
+            .test-passed { background: #d4edda; border-left: 4px solid #28a745; }
+            .test-failed { background: #f8d7da; border-left: 4px solid #dc3545; }
+            .test-warning { background: #fff3cd; border-left: 4px solid #ffc107; }
+            .scan-summary { background: #e9ecef; padding: 15px; border-radius: 6px; margin-top: 20px; }
+            .stat-item { display: flex; justify-content: space-between; padding: 5px 0; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🚨 GitHub Security Alert</h1>
+                <h2>📁 ewestrum/TestRepo</h2>
+                <p>Risk Level: <strong>HIGH</strong></p>
+            </div>
+    
+            <div class="section">
+                <div class="section-header">
+                    <h3>📁 Verdachte Bestanden</h3>
+                </div>
+                <div class="section-content">
+                    <ul>
+        <li><strong>.env</strong>: Configuration file met mogelijke secrets</li><li><strong>private.key</strong>: Private key bestand</li>
+                    </ul>
+                </div>
+            </div>
+        
+            <div class="section">
+                <div class="section-header">
+                    <h3>⚠️ Gevoelige Content</h3>
+                </div>
+                <div class="section-content">
+                    <ul>
+        
+                <li><strong>API Key Pattern</strong> in config.py:23 (Severity: HIGH)</li>
+            
+                <li><strong>IBAN Pattern</strong> in test_data.txt:45 (Severity: CRITICAL)</li>
+            
+                    </ul>
+                </div>
+            </div>
+        
+            <div class="section">
+                <div class="section-header">
+                    <h3>📋 Uitgevoerde Tests voor ewestrum/TestRepo</h3>
+                </div>
+                <div class="section-content">
+    
+                    <div class="test-category">
+                        <h4>🔍 Bestandsnaam Analyse</h4>
+                        <p style="color: #6c757d; font-size: 0.9em;">Scanning van verdachte bestandsnamen en extensies</p>
+        
+                        <div class="test-item test-failed">
+                            <span style="margin-right: 10px;">❌</span>
+                            <span style="flex-grow: 1;">Configuratie bestanden (.env, .config)</span>
+                            <span style="font-weight: 600; font-size: 0.85em;">FAILED</span>
+                        </div>
+            
+                        <div class="test-item test-failed">
+                            <span style="margin-right: 10px;">❌</span>
+                            <span style="flex-grow: 1;">Sleutel bestanden (private keys, certificates)</span>
+                            <span style="font-weight: 600; font-size: 0.85em;">FAILED</span>
+                        </div>
+            
+                        <div class="test-item test-passed">
+                            <span style="margin-right: 10px;">✅</span>
+                            <span style="flex-grow: 1;">Backup en database bestanden</span>
+                            <span style="font-weight: 600; font-size: 0.85em;">PASSED</span>
+                        </div>
+            
+                        <div class="test-item test-passed">
+                            <span style="margin-right: 10px;">✅</span>
+                            <span style="flex-grow: 1;">Log bestanden met gevoelige data</span>
+                            <span style="font-weight: 600; font-size: 0.85em;">PASSED</span>
+                        </div>
+            </div>
+                    <div class="test-category">
+                        <h4>🔐 Content Security Analyse</h4>
+                        <p style="color: #6c757d; font-size: 0.9em;">Diepgaande analyse van bestandsinhoud</p>
+        
+                        <div class="test-item test-failed">
+                            <span style="margin-right: 10px;">❌</span>
+                            <span style="flex-grow: 1;">API Keys en Tokens</span>
+                            <span style="font-weight: 600; font-size: 0.85em;">FAILED</span>
+                        </div>
+            
+                        <div class="test-item test-passed">
+                            <span style="margin-right: 10px;">✅</span>
+                            <span style="flex-grow: 1;">Wachtwoorden en Credentials</span>
+                            <span style="font-weight: 600; font-size: 0.85em;">PASSED</span>
+                        </div>
+            
+                        <div class="test-item test-passed">
+                            <span style="margin-right: 10px;">✅</span>
+                            <span style="flex-grow: 1;">Database Connection Strings</span>
+                            <span style="font-weight: 600; font-size: 0.85em;">PASSED</span>
+                        </div>
+            
+                        <div class="test-item test-passed">
+                            <span style="margin-right: 10px;">✅</span>
+                            <span style="flex-grow: 1;">Private SSH Keys</span>
+                            <span style="font-weight: 600; font-size: 0.85em;">PASSED</span>
+                        </div>
+            </div>
+                    <div class="test-category">
+                        <h4>👤 Persoonlijke Data Detectie</h4>
+                        <p style="color: #6c757d; font-size: 0.9em;">Scanning naar persoonlijke en gevoelige klantgegevens</p>
+        
+                        <div class="test-item test-failed">
+                            <span style="margin-right: 10px;">❌</span>
+                            <span style="flex-grow: 1;">IBAN en Bankrekeningnummers</span>
+                            <span style="font-weight: 600; font-size: 0.85em;">FAILED</span>
+                        </div>
+            
+                        <div class="test-item test-passed">
+                            <span style="margin-right: 10px;">✅</span>
+                            <span style="flex-grow: 1;">BSN (Burgerservicenummers)</span>
+                            <span style="font-weight: 600; font-size: 0.85em;">PASSED</span>
+                        </div>
+            
+                        <div class="test-item test-passed">
+                            <span style="margin-right: 10px;">✅</span>
+                            <span style="flex-grow: 1;">Nederlandse Postcodes</span>
+                            <span style="font-weight: 600; font-size: 0.85em;">PASSED</span>
+                        </div>
+            
+                        <div class="test-item test-passed">
+                            <span style="margin-right: 10px;">✅</span>
+                            <span style="flex-grow: 1;">Persoonsnamen en Adressen</span>
+                            <span style="font-weight: 600; font-size: 0.85em;">PASSED</span>
+                        </div>
+            
+                        <div class="test-item test-passed">
+                            <span style="margin-right: 10px;">✅</span>
+                            <span style="flex-grow: 1;">Telefoonnummers</span>
+                            <span style="font-weight: 600; font-size: 0.85em;">PASSED</span>
+                        </div>
+            
+                        <div class="test-item test-passed">
+                            <span style="margin-right: 10px;">✅</span>
+                            <span style="flex-grow: 1;">Email Adressen</span>
+                            <span style="font-weight: 600; font-size: 0.85em;">PASSED</span>
+                        </div>
+            </div>
+                    <div class="test-category">
+                        <h4>🏥 Medische en Financiële Data</h4>
+                        <p style="color: #6c757d; font-size: 0.9em;">Specifieke controles voor gevoelige sectoren</p>
+        
+                        <div class="test-item test-passed">
+                            <span style="margin-right: 10px;">✅</span>
+                            <span style="flex-grow: 1;">Medische Terminologie</span>
+                            <span style="font-weight: 600; font-size: 0.85em;">PASSED</span>
+                        </div>
+            
+                        <div class="test-item test-passed">
+                            <span style="margin-right: 10px;">✅</span>
+                            <span style="flex-grow: 1;">Financiële Termen</span>
+                            <span style="font-weight: 600; font-size: 0.85em;">PASSED</span>
+                        </div>
+            
+                        <div class="test-item test-passed">
+                            <span style="margin-right: 10px;">✅</span>
+                            <span style="flex-grow: 1;">Kentekens en Rijbewijzen</span>
+                            <span style="font-weight: 600; font-size: 0.85em;">PASSED</span>
+                        </div>
+            </div>
+                    <div class="test-category">
+                        <h4>⚡ Code Kwaliteit Checks</h4>
+                        <p style="color: #6c757d; font-size: 0.9em;">Algemene code veiligheid en best practices</p>
+        
+                        <div class="test-item test-warning">
+                            <span style="margin-right: 10px;">⚠️</span>
+                            <span style="flex-grow: 1;">Hardcoded Secrets</span>
+                            <span style="font-weight: 600; font-size: 0.85em;">WARNING</span>
+                        </div>
+            
+                        <div class="test-item test-passed">
+                            <span style="margin-right: 10px;">✅</span>
+                            <span style="flex-grow: 1;">Debug Code in Productie</span>
+                            <span style="font-weight: 600; font-size: 0.85em;">PASSED</span>
+                        </div>
+            
+                        <div class="test-item test-warning">
+                            <span style="margin-right: 10px;">ℹ️</span>
+                            <span style="flex-grow: 1;">Test Files met Echte Data</span>
+                            <span style="font-weight: 600; font-size: 0.85em;">INFO</span>
+                        </div>
+            </div>
+                    <div class="scan-summary">
+                        <h4>📊 Scan Samenvatting</h4>
+                        <div class="stat-item">
+                            <span>Totaal bestanden gescand:</span>
+                            <span><strong>156</strong></span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Scan uitgevoerd op:</span>
+                            <span><strong>2025-10-20 23:45:07</strong></span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Verdachte bestanden gevonden:</span>
+                            <span><strong>2</strong></span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Gevoelige content gedetecteerd:</span>
+                            <span><strong>2</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <div class="section">
+                <div class="section-header">
+                    <h3>💡 Aanbevelingen</h3>
+                </div>
+                <div class="section-content">
+                    <ul>
+        <li>Verwijder .env bestand uit git repository</li><li>Gebruik environment variabelen voor API keys</li><li>Implementeer .gitignore voor gevoelige bestanden</li>
+                    </ul>
+                </div>
+            </div>
+        
+            <div style="text-align: center; padding: 20px; color: #666; font-size: 0.9em;">
+                <p><strong>GitHub Monitor Tool</strong> • Automatische security scanning</p>
+                <p>Voor vragen of ondersteuning, neem contact op met je security team</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    

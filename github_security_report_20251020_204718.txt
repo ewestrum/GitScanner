@@ -1,0 +1,42 @@
+============================================================
+GITHUB SECURITY MONITORING REPORT
+============================================================
+Scan completed at: 2025-10-20 20:47:18
+Total repositories scanned: 5
+
+RISK LEVEL DISTRIBUTION:
+  Critical: 2
+  High: 0
+  Medium: 2
+  Low: 1
+
+Total suspicious files found: 8
+Total sensitive content instances: 41
+
+HIGH-RISK REPOSITORIES:
+----------------------------------------
+Repository: GitScanner
+Risk Level: CRITICAL
+Suspicious files: 2
+Sensitive content: 33
+Recommendations:
+  - Verwijder verdachte bestanden of voeg ze toe aan .gitignore
+  - Controleer of gevoelige bestanden per ongeluk zijn gecommit
+  - Gebruik environment variabelen voor gevoelige configuratie
+  - Implementeer secrets management (bijv. GitHub Secrets)
+  - Voer een security audit uit van gecommitte code
+  - URGENT: Roteer alle geëxposeerde credentials onmiddellijk
+  - Overweeg de git history te herschrijven om gevoelige data te verwijderen
+
+Repository: WaterClockLabTube
+Risk Level: CRITICAL
+Suspicious files: 3
+Sensitive content: 8
+Recommendations:
+  - Verwijder verdachte bestanden of voeg ze toe aan .gitignore
+  - Controleer of gevoelige bestanden per ongeluk zijn gecommit
+  - Gebruik environment variabelen voor gevoelige configuratie
+  - Implementeer secrets management (bijv. GitHub Secrets)
+  - Voer een security audit uit van gecommitte code
+  - URGENT: Roteer alle geëxposeerde credentials onmiddellijk
+  - Overweeg de git history te herschrijven om gevoelige data te verwijderen

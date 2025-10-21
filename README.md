@@ -1,10 +1,11 @@
-# GitScanner
+# GitScanner v2.3
 
-A comprehensive GitHub repository security monitoring tool that scans for sensitive files, credentials, and potential data leaks across your GitHub repositories.
+A comprehensive GitHub repository security monitoring tool that scans for sensitive files, credentials, and potential data leaks across your GitHub repositories. Now with enhanced large file detection and enterprise-grade reporting.
 
 ![GitHub Security Scan](https://img.shields.io/badge/Security-Scanner-red)
 ![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
+![Version](https://img.shields.io/badge/Version-2.3-blue)
 
 ## Features
 
@@ -41,6 +42,29 @@ A comprehensive GitHub repository security monitoring tool that scans for sensit
 - **Scan Statistics**: Complete metrics including files scanned, issues found, test results
 - **Status Indicators**: Clear ✅ PASSED / ❌ FAILED / ⚠️ WARNING / ℹ️ INFO markers
 - **Multi-Repository Reports**: Summary reports with test logs for all scanned repositories
+
+## 🚀 What's New in v2.3
+
+### Enhanced Large File Processing
+- **🔥 No More Size Limits**: File size limits increased from 1-10MB to 100-500MB for comprehensive security scanning
+- **📊 Large File Detection**: Files >10MB (text) or >50MB (binary) automatically flagged as potentially suspicious
+- **🎯 Data Leak Focus**: Enhanced detection of database dumps, backups, and log files that often contain sensitive data
+- **⚡ Smart Processing**: Extremely large files (>500MB) get metadata scanning while being flagged as high-risk
+- **📈 Enterprise Scale**: Successfully processes repositories with 247+ files efficiently
+
+### Professional Email System v2.0
+- **💼 Professional Templates**: Enterprise-grade HTML email templates with modern CSS styling
+- **🏆 Comprehensive Analysis**: 5 detailed security test categories with complete breakdown
+- **🌍 English Documentation**: All content professionally translated with detailed security examples
+- **📋 Regulatory Compliance**: Built-in references to GDPR, HIPAA, PCI-DSS compliance requirements
+- **📊 Enhanced Summaries**: Executive-level summary emails with complete per-repository test breakdown
+- **🎨 Visual Indicators**: Color-coded risk levels and clear status indicators for quick assessment
+
+### Performance & Reliability Improvements
+- **🧹 Automatic Cleanup**: Enhanced monitor includes automatic temporary directory cleanup
+- **🔒 Null Safety**: Robust error handling for edge cases and file system variations
+- **🚀 Improved Efficiency**: Optimized file processing pipeline for better performance
+- **📁 Better File Handling**: Enhanced support for various file types and encoding detection
 
 ## Installation
 
@@ -105,11 +129,15 @@ SENDER_EMAIL=your_email@gmail.com
 SENDER_PASSWORD=your_app_password_here
 RECIPIENT_EMAILS=alert1@example.com,alert2@example.com
 
-# Scanning configuration
+# Enhanced Scanning configuration (v2.3)
 SCAN_PRIVATE_REPOS=true
 SCAN_DEPTH=2
-MAX_FILE_SIZE=1048576
+MAX_FILE_SIZE=104857600  # 100MB - increased for comprehensive security scanning
 RATE_LIMIT_DELAY=1.0
+
+# Large file detection thresholds (new in v2.3)
+LARGE_TEXT_THRESHOLD=10485760    # 10MB - text files above this are flagged as suspicious
+LARGE_BINARY_THRESHOLD=52428800 # 50MB - binary files above this are flagged as suspicious
 
 # Alert levels
 ALERT_CRITICAL=true

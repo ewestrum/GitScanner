@@ -1,0 +1,37 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "GitHub Monitor",
+          "version": "1.0.0",
+          "informationUri": "https://github.com/your-org/github-monitor",
+          "rules": []
+        }
+      },
+      "results": [],
+      "invocations": [
+        {
+          "startTimeUtc": "2025-10-20T18:31:17.705371+00:00",
+          "executionSuccessful": true
+        }
+      ],
+      "artifacts": [],
+      "properties": {
+        "scan_summary": {
+          "start_time": 1760985077.705384,
+          "end_time": 1760985079.5589077,
+          "total_repositories": 5,
+          "total_files_scanned": 0,
+          "total_findings": 0,
+          "repositories_with_issues": 0,
+          "critical_findings": 0,
+          "high_risk_findings": 0
+        },
+        "github_monitor_version": "1.0"
+      }
+    }
+  ]
+}
