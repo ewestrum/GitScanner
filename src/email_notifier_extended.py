@@ -218,7 +218,7 @@ class EmailNotifier:
             html += """
                 <div class="section">
                     <div class="section-header">
-                        <div class="section-title">📁 Verdachte Bestanden</div>
+                        <div class="section-title">📁 Suspicious Files Detected</div>
                     </div>
                     <div class="section-content">
                         <ul class="issue-list">
@@ -229,7 +229,7 @@ class EmailNotifier:
                 html += f"""
                             <li class="issue-item">
                                 <div class="issue-title">📄 {file_path}</div>
-                                <div class="issue-details">Reden: {reason}</div>
+                                <div class="issue-details">Reason: {reason}</div>
                             </li>
                 """
             html += """
@@ -244,14 +244,14 @@ class EmailNotifier:
             html += """
                 <div class="section">
                     <div class="section-header">
-                        <div class="section-title">⚠️ Gevoelige Content</div>
+                        <div class="section-title">⚠️ Sensitive Content Detected</div>
                     </div>
                     <div class="section-content">
                         <ul class="issue-list">
             """
             for content_info in sensitive_content:
-                pattern = content_info.get('pattern', 'Onbekend patroon')
-                file_path = content_info.get('file_path', 'Onbekend bestand')
+                pattern = content_info.get('pattern', 'Unknown pattern')
+                file_path = content_info.get('file_path', 'Unknown file')
                 line_number = content_info.get('line_number', '?')
                 severity = content_info.get('severity', 'MEDIUM')
                 
@@ -279,53 +279,53 @@ class EmailNotifier:
         # Test categories with results
         test_categories = [
             {
-                'name': '🔍 Bestandsnaam Analyse',
-                'description': 'Scanning van verdachte bestandsnamen en extensies',
+                'name': '🔍 Filename Security Analysis',
+                'description': 'Comprehensive scanning for suspicious file patterns and extensions that commonly contain sensitive data',
                 'tests': [
-                    ('Configuratie bestanden (.env, .config)', 'PASSED' if not any('.env' in f.get('path', '') for f in suspicious_files) else 'FAILED'),
-                    ('Sleutel bestanden (private keys, certificates)', 'PASSED' if not any('key' in f.get('path', '').lower() for f in suspicious_files) else 'FAILED'),
-                    ('Backup en database bestanden', 'PASSED' if not any(ext in f.get('path', '').lower() for f in suspicious_files for ext in ['.sql', '.db']) else 'FAILED'),
-                    ('Log bestanden met gevoelige data', 'PASSED' if not any('.log' in f.get('path', '').lower() for f in suspicious_files) else 'FAILED')
+                    ('Configuration Files with Secrets (e.g., .env, .config, settings.json, database.yml)', 'PASSED' if not any('.env' in f.get('path', '') for f in suspicious_files) else 'FAILED'),
+                    ('Private Keys & Certificates (e.g., .key, .pem, .p12, .jks, id_rsa, certificate files)', 'PASSED' if not any('key' in f.get('path', '').lower() for f in suspicious_files) else 'FAILED'),
+                    ('Database Backups & Dumps (e.g., .sql, .db, .sqlite, backup.gz, dump files)', 'PASSED' if not any(ext in f.get('path', '').lower() for f in suspicious_files for ext in ['.sql', '.db']) else 'FAILED'),
+                    ('Log Files with Potential Data Leaks (e.g., .log, error.txt, debug files, trace logs)', 'PASSED' if not any('.log' in f.get('path', '').lower() for f in suspicious_files) else 'FAILED')
                 ]
             },
             {
-                'name': '🔐 Content Security Analyse',
-                'description': 'Diepgaande analyse van bestandsinhoud',
+                'name': '🔐 Content Security Analysis',
+                'description': 'Deep content analysis for hardcoded secrets, tokens, and credentials using pattern matching and entropy detection',
                 'tests': [
-                    ('API Keys en Tokens', 'PASSED' if not any('api' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED'),
-                    ('Wachtwoorden en Credentials', 'PASSED' if not any('password' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED'),
-                    ('Database Connection Strings', 'PASSED' if not any('database' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED'),
-                    ('Private SSH Keys', 'PASSED' if not any('ssh' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED')
+                    ('API Keys & Access Tokens (e.g., sk_live_..., AKIA..., ghp_..., xoxb-...)', 'PASSED' if not any('api' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED'),
+                    ('Database Credentials (e.g., mongodb://, postgres://, mysql://user:pass@host)', 'PASSED' if not any('password' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED'),
+                    ('Database Connection Strings (connection URLs with embedded credentials)', 'PASSED' if not any('database' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED'),
+                    ('Private SSH Keys (RSA, DSA, ECDSA private keys, OpenSSH format)', 'PASSED' if not any('ssh' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED')
                 ]
             },
             {
-                'name': '👤 Persoonlijke Data Detectie',
-                'description': 'Scanning naar persoonlijke en gevoelige klantgegevens',
+                'name': '👤 Personal Data Detection (PII/GDPR)',
+                'description': 'Comprehensive scanning for personally identifiable information and customer data protected under GDPR and privacy regulations',
                 'tests': [
-                    ('IBAN en Bankrekeningnummers', 'PASSED' if not any('iban' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED'),
-                    ('BSN (Burgerservicenummers)', 'PASSED' if not any('bsn' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED'),
-                    ('Nederlandse Postcodes', 'PASSED' if not any('postcode' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED'),
-                    ('Persoonsnamen en Adressen', 'PASSED' if not any('personal' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED'),
-                    ('Telefoonnummers', 'PASSED' if not any('phone' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED'),
-                    ('Email Adressen', 'PASSED' if not any('email' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED')
+                    ('IBAN & Bank Account Numbers (e.g., NL91ABNA0417164300, account numbers, sort codes)', 'PASSED' if not any('iban' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED'),
+                    ('Dutch Social Security Numbers (BSN: e.g., 123456782, citizen service numbers)', 'PASSED' if not any('bsn' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED'),
+                    ('Dutch Postal Codes & Addresses (e.g., 1012 AB, full addresses with house numbers)', 'PASSED' if not any('postcode' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED'),
+                    ('Personal Names & Identity Data (full names, identity documents, passport numbers)', 'PASSED' if not any('personal' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED'),
+                    ('Phone Numbers (e.g., +31 6 12345678, international/local formats)', 'PASSED' if not any('phone' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED'),
+                    ('Email Addresses (personal/business emails that could identify individuals)', 'PASSED' if not any('email' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED')
                 ]
             },
             {
-                'name': '🏥 Medische en Financiële Data',
-                'description': 'Specifieke controles voor gevoelige sectoren',
+                'name': '🏥 Healthcare & Financial Data (HIPAA/PCI-DSS)',
+                'description': 'Specialized detection for highly regulated sectors including healthcare records, financial transactions, and government identifiers',
                 'tests': [
-                    ('Medische Terminologie', 'PASSED' if not any('medical' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED'),
-                    ('Financiële Termen', 'PASSED' if not any('financial' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED'),
-                    ('Kentekens en Rijbewijzen', 'PASSED' if not any('license' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED')
+                    ('Medical Records & Terminology (patient IDs, medical record numbers, health data, diagnosis codes)', 'PASSED' if not any('medical' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED'),
+                    ('Financial Transaction Data (credit card numbers, transaction IDs, payment references, SWIFT codes)', 'PASSED' if not any('financial' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED'),
+                    ('License Plates & Driver IDs (vehicle registrations, driver license numbers, government ID numbers)', 'PASSED' if not any('license' in c.get('pattern', '').lower() for c in sensitive_content) else 'FAILED')
                 ]
             },
             {
-                'name': '⚡ Code Kwaliteit Checks',  
-                'description': 'Algemene code veiligheid en best practices',
+                'name': '⚡ Code Quality & Security Practices',  
+                'description': 'General security hygiene checks for development best practices, code quality, and potential security vulnerabilities',
                 'tests': [
-                    ('Hardcoded Secrets', 'PASSED' if not sensitive_content else 'WARNING'),
-                    ('Debug Code in Productie', 'PASSED' if not any('debug' in f.get('path', '').lower() for f in suspicious_files) else 'WARNING'),
-                    ('Test Files met Echte Data', 'PASSED' if not any('test' in f.get('path', '').lower() for f in suspicious_files) else 'INFO')
+                    ('Hardcoded Secrets Detection (passwords, keys, tokens embedded directly in source code)', 'PASSED' if not sensitive_content else 'WARNING'),
+                    ('Debug Code in Production (console.log, print statements, debugging endpoints, verbose logging)', 'PASSED' if not any('debug' in f.get('path', '').lower() for f in suspicious_files) else 'WARNING'),
+                    ('Test Files with Real Data (unit tests, fixtures, or samples containing actual customer/production data)', 'PASSED' if not any('test' in f.get('path', '').lower() for f in suspicious_files) else 'INFO')
                 ]
             }
         ]
@@ -358,19 +358,19 @@ class EmailNotifier:
                         <div class="scan-summary">
                             <h4>📊 Scan Samenvatting</h4>
                             <div class="stat-item">
-                                <span class="stat-label">Totaal bestanden gescand:</span>
+                                <span class="stat-label">Total files scanned:</span>
                                 <span class="stat-value">{scan_result.get('files_scanned', 0)}</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">Scan uitgevoerd op:</span>
-                                <span class="stat-value">{scan_result.get('scan_time', 'Onbekend')}</span>
+                                <span class="stat-label">Scan performed at:</span>
+                                <span class="stat-value">{scan_result.get('scan_time', 'Unknown')}</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">Verdachte bestanden gevonden:</span>
+                                <span class="stat-label">Suspicious files found:</span>
                                 <span class="stat-value">{len(suspicious_files)}</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">Gevoelige content gedetecteerd:</span>
+                                <span class="stat-label">Sensitive content detected:</span>
                                 <span class="stat-value">{len(sensitive_content)}</span>
                             </div>
                         </div>
@@ -438,7 +438,7 @@ class EmailNotifier:
         suspicious_files = scan_result.get('suspicious_files', [])
         if suspicious_files:
             lines.extend([
-                "📁 VERDACHTE BESTANDEN:",
+                "📁 SUSPICIOUS FILES DETECTED:",
                 "-" * 25
             ])
             for file_info in suspicious_files:
@@ -450,7 +450,7 @@ class EmailNotifier:
         sensitive_content = scan_result.get('sensitive_content', [])
         if sensitive_content:
             lines.extend([
-                "⚠️ GEVOELIGE CONTENT:",
+                "⚠️ SENSITIVE CONTENT DETECTED:",
                 "-" * 20
             ])
             for content_info in sensitive_content:
@@ -472,7 +472,7 @@ class EmailNotifier:
                 "Configuratie bestanden (.env, .config)",
                 "Sleutel bestanden (private keys, certificates)", 
                 "Backup en database bestanden",
-                "Log bestanden met potentieel gevoelige data"
+                "Log files with potential sensitive data leaks"
             ]),
             ("🔐 CONTENT SECURITY ANALYSE", [
                 "API Keys en Tokens",
@@ -480,18 +480,18 @@ class EmailNotifier:
                 "Database Connection Strings",
                 "Private SSH Keys"
             ]),
-            ("👤 PERSOONLIJKE DATA DETECTIE", [
+            ("👤 PERSONAL DATA DETECTION (PII/GDPR)", [
                 "IBAN en Bankrekeningnummers",
-                "BSN (Burgerservicenummers)",
-                "Nederlandse Postcodes",
+                "Dutch Social Security Numbers (BSN: e.g., 123456782, citizen service numbers)",
+                "Dutch Postal Codes & Addresses (e.g., 1012 AB, full addresses with house numbers)",
                 "Persoonsnamen en Adressen",
                 "Telefoonnummers",
                 "Email Adressen"
             ]),
-            ("🏥 MEDISCHE EN FINANCIËLE DATA", [
-                "Medische Terminologie",
-                "Financiële Termen",
-                "Kentekens en Rijbewijzen"
+            ("🏥 HEALTHCARE & FINANCIAL DATA (HIPAA/PCI-DSS)", [
+                "Medical Records & Terminology (patient IDs, medical record numbers, health data, diagnosis codes)",
+                "Financial Transaction Data (credit card numbers, transaction IDs, payment references, SWIFT codes)",
+                "License Plates & Driver IDs (vehicle registrations, driver license numbers, government ID numbers)"
             ]),
             ("⚡ CODE KWALITEIT CHECKS", [
                 "Hardcoded Secrets",
@@ -520,9 +520,9 @@ class EmailNotifier:
         lines.extend([
             "📊 SCAN STATISTIEKEN:",
             "-" * 20,
-            f"Totaal bestanden gescand: {scan_result.get('files_scanned', 0)}",
-            f"Verdachte bestanden: {len(scan_result.get('suspicious_files', []))}",
-            f"Gevoelige content items: {len(scan_result.get('sensitive_content', []))}",
+            f"Total files scanned: {scan_result.get('files_scanned', 0)}",
+            f"Suspicious files found: {len(scan_result.get('suspicious_files', []))}",
+            f"Sensitive content detected: {len(scan_result.get('sensitive_content', []))}",
             f"Scan tijd: {scan_result.get('scan_time', 'Onbekend')}",
             ""
         ])
@@ -596,7 +596,7 @@ class EmailNotifier:
             <div style="border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 5px;">
                 <h3>📁 {repo_name}</h3>
                 <p>Risk Level: <strong>{repo.get('risk_level', 'LOW')}</strong></p>
-                <p>Verdachte bestanden: {suspicious_count} | Gevoelige content: {sensitive_count}</p>
+                <p>Suspicious files: {suspicious_count} | Sensitive content: {sensitive_count}</p>
             </div>
             """
         
