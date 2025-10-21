@@ -91,7 +91,7 @@ class EnhancedGitHubMonitor:
         # Performance optimizer - map from existing config
         performance_config = create_default_performance_config()
         performance_config.update({
-            'max_file_size': self.config.get('MAX_FILE_SIZE', 10485760),
+            'max_file_size': self.config.get('MAX_FILE_SIZE', 104857600),  # 100MB for security scanning
             'max_workers': 4  # Use default for now
         })
         self.performance_optimizer = PerformanceOptimizer(performance_config)
