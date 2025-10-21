@@ -4,10 +4,11 @@ GitHub API Client for repository monitoring and content analysis
 
 import requests
 import logging
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 import time
 from urllib.parse import urljoin
 import base64
+import shutil
 
 logger = logging.getLogger(__name__)
 
@@ -246,3 +247,69 @@ class GitHubClient:
         except Exception as e:
             logger.error(f"Error getting commits for {full_name}: {e}")
             return []
+    
+    def clone_repository(self, repo_data_or_url: Union[Dict[str, Any], str], temp_dir_or_name: str) -> Optional[str]:
+        """Clone repository to temporary directory
+        
+        Args:
+            repo_data_or_url: Repository data dictionary OR clone URL (for backward compatibility)
+            temp_dir_or_name: Temporary directory path OR repository name (for backward compatibility)
+            
+        Returns:
+            Path to cloned repository, or None if failed
+        """
+        import subprocess
+        import tempfile
+        from pathlib import Path
+        
+        # Handle both calling conventions
+        if isinstance(repo_data_or_url, str):
+            # Legacy calling convention: clone_repository(clone_url, repo_name)
+            clone_url = repo_data_or_url
+            repo_name = temp_dir_or_name
+            temp_dir = tempfile.gettempdir()
+        else:
+            # New calling convention: clone_repository(repo_data, temp_dir)
+            repo_data = repo_data_or_url
+            repo_name = repo_data.get('name', 'unknown')
+            clone_url = repo_data.get('clone_url')
+            temp_dir = temp_dir_or_name
+        
+        try:
+            if not clone_url:
+                logger.error(f"No clone URL for repository {repo_name}")
+                return None
+            
+            # Create temp directory for this repo
+            repo_temp_dir = Path(temp_dir) / repo_name
+            
+            # Remove existing directory if it exists
+            if repo_temp_dir.exists():
+                shutil.rmtree(repo_temp_dir, ignore_errors=True)
+                
+            repo_temp_dir.mkdir(parents=True, exist_ok=True)
+            
+            logger.info(f"Cloning repository {repo_name} to {repo_temp_dir}")
+            
+            # Clone repository
+            cmd = ['git', 'clone', '--depth', '1', clone_url, str(repo_temp_dir)]
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            
+            if result.returncode == 0:
+                logger.info(f"Successfully cloned {repo_name}")
+                return str(repo_temp_dir)
+            else:
+                logger.error(f"Failed to clone {repo_name}: {result.stderr}")
+                return None
+                
+        except subprocess.TimeoutExpired:
+            logger.error(f"Timeout cloning repository {repo_name}")
+            return None
+        except Exception as e:
+            logger.error(f"Error cloning repository {repo_name}: {e}")
+            return None
+    
+    def cleanup_temp_files(self):
+        """Cleanup temporary files (placeholder for interface compatibility)"""
+        logger.info("Cleanup completed")
+        pass

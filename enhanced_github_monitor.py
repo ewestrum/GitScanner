@@ -6,6 +6,8 @@ import os
 import sys
 import logging
 import time
+import shutil
+import tempfile
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 from pathlib import Path
@@ -137,6 +139,45 @@ class EnhancedGitHubMonitor:
         else:
             self.email_notifier = None
     
+    def cleanup_temp_directories(self):
+        """Clean up any existing temporary directories before scanning"""
+        temp_dir = tempfile.gettempdir()
+        logger.info(f"Cleaning up temporary directories in: {temp_dir}")
+            
+        # Clean up common repository temp directories
+        common_repo_names = ['GitScanner', 'AnimatronicMask', 'WaterClockLabTube', 
+                           'WLED_PCB_KiCAD', 'ESP32_Wifi_Controller']
+        
+        cleanup_count = 0
+        for repo_name in common_repo_names:
+            repo_temp_path = os.path.join(temp_dir, repo_name)
+            if os.path.exists(repo_temp_path):
+                try:
+                    # First try normal removal
+                    shutil.rmtree(repo_temp_path, ignore_errors=False)
+                    logger.info(f"Removed temp directory: {repo_temp_path}")
+                    cleanup_count += 1
+                except PermissionError:
+                    # If permission error, try to change permissions and retry
+                    try:
+                        for root, dirs, files in os.walk(repo_temp_path):
+                            for dir in dirs:
+                                os.chmod(os.path.join(root, dir), 0o777)
+                            for file in files:
+                                os.chmod(os.path.join(root, file), 0o777)
+                        shutil.rmtree(repo_temp_path, ignore_errors=False)
+                        logger.info(f"Removed temp directory after permission fix: {repo_temp_path}")
+                        cleanup_count += 1
+                    except Exception as e:
+                        logger.warning(f"Could not remove temp directory {repo_temp_path}: {e}")
+                except Exception as e:
+                    logger.warning(f"Could not remove temp directory {repo_temp_path}: {e}")
+        
+        if cleanup_count > 0:
+            logger.info(f"Cleaned up {cleanup_count} temporary directories")
+        else:
+            logger.info("No temporary directories found to clean up")
+    
     def scan_all_repositories(self, 
                             include_git_history: bool = True,
                             max_repositories: Optional[int] = None,
@@ -151,6 +192,9 @@ class EnhancedGitHubMonitor:
         Returns:
             Complete scan results
         """
+        # Clean up temporary directories before starting scan
+        self.cleanup_temp_directories()
+        
         self.scan_stats['start_time'] = time.time()
         logger.info("Starting enhanced repository scan")
         
@@ -210,11 +254,42 @@ class EnhancedGitHubMonitor:
                     'features_enabled': self._get_enabled_features()
                 },
                 'summary': self.scan_stats.copy(),
-                'repositories': scanned_repositories
+                'repositories': scanned_repositories,
+                # Email template compatibility
+                'files_scanned': self.scan_stats['total_files_scanned']
             }
             
             # Calculate overall risk assessment
             scan_results['risk_assessment'] = self._calculate_overall_risk(scanned_repositories)
+            
+            # Convert findings to email template format
+            all_suspicious_files = []
+            all_sensitive_content = []
+            
+            for repo in scanned_repositories:
+                for finding in repo.get('findings', []):
+                    if finding.get('type') == 'file':
+                        # File-based findings go to suspicious_files
+                        all_suspicious_files.append({
+                            'name': finding.get('file_path', finding.get('path', 'Unknown')),
+                            'risk': finding.get('severity', 'MEDIUM'),
+                            'reason': finding.get('description', finding.get('message', 'Suspicious file detected')),
+                            'repository': repo['name']
+                        })
+                    else:
+                        # Content-based findings go to sensitive_content
+                        all_sensitive_content.append({
+                            'type': finding.get('rule', finding.get('type', 'Unknown')),
+                            'description': finding.get('description', finding.get('message', 'Sensitive content found')),
+                            'file': finding.get('file_path', finding.get('path', 'Unknown')),
+                            'line': finding.get('line_number', 0),
+                            'severity': finding.get('severity', 'MEDIUM'),
+                            'repository': repo['name']
+                        })
+            
+            # Add email template compatibility fields
+            scan_results['suspicious_files'] = all_suspicious_files
+            scan_results['sensitive_content'] = all_sensitive_content
             
             logger.info(f"Scan completed: {self.scan_stats['total_findings']} findings in {len(scanned_repositories)} repositories")
             

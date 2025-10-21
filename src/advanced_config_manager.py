@@ -110,7 +110,7 @@ class AdvancedConfigManager:
                 id="aws-secret-key",
                 name="AWS Secret Access Key",
                 description="Amazon Web Services Secret Access Key",
-                pattern=r'(?i)aws[_-]?secret[_-]?access[_-]?key[\'\"\\s]*[:=][\'\"\\s]*[A-Za-z0-9/+=]{40}',
+                pattern=r'(?i)aws[_-]?secret[_-]?access[_-]?key["\s]*[:=]["\s]*[A-Za-z0-9/+=]{40}',
                 severity="CRITICAL",
                 confidence="HIGH",
                 tags=["aws", "credentials", "secret"]
@@ -121,7 +121,7 @@ class AdvancedConfigManager:
                 id="github-pat",
                 name="GitHub Personal Access Token",
                 description="GitHub Personal Access Token",
-                pattern=r'\\bghp_[a-zA-Z0-9]{36}\\b',
+                pattern=r'\bghp_[a-zA-Z0-9]{36}\b',
                 severity="CRITICAL",
                 confidence="HIGH",
                 tags=["github", "token", "api-key"]
@@ -129,11 +129,11 @@ class AdvancedConfigManager:
             RegexRule(
                 id="github-oauth",
                 name="GitHub OAuth Token",
-                description="GitHub OAuth Token",
-                pattern=r'\\bgho_[a-zA-Z0-9]{36}\\b',
+                description="GitHub OAuth App Token",
+                pattern=r'\bgho_[a-zA-Z0-9]{36}\b',
                 severity="CRITICAL",
                 confidence="HIGH",
-                tags=["github", "token", "oauth"]
+                tags=["github", "oauth", "token"]
             ),
             
             # Private Keys
@@ -161,7 +161,7 @@ class AdvancedConfigManager:
                 id="generic-api-key",
                 name="Generic API Key",
                 description="Generic API Key Pattern",
-                pattern=r'(?i)api[_-]?key[\'\"\\s]*[:=][\'\"\\s]*[A-Za-z0-9_-]{20,}',
+                pattern=r'(?i)api[_-]?key["\s]*[:=]["\s]*[A-Za-z0-9_-]{20,}',
                 severity="HIGH",
                 confidence="MEDIUM",
                 tags=["api-key", "generic"]
@@ -172,7 +172,7 @@ class AdvancedConfigManager:
                 id="postgres-connection",
                 name="PostgreSQL Connection String",
                 description="PostgreSQL database connection string",
-                pattern=r'postgresql://[^\\s\"\']+',
+                pattern=r'postgresql://[^\s"]+',
                 severity="HIGH",
                 confidence="HIGH",
                 tags=["database", "postgresql", "connection"]
@@ -181,7 +181,7 @@ class AdvancedConfigManager:
                 id="mysql-connection",
                 name="MySQL Connection String",
                 description="MySQL database connection string",
-                pattern=r'mysql://[^\\s\"\']+',
+                pattern=r'mysql://[^\s"]+',
                 severity="HIGH",
                 confidence="HIGH",
                 tags=["database", "mysql", "connection"]
@@ -192,7 +192,7 @@ class AdvancedConfigManager:
                 id="jwt-token",
                 name="JWT Token",
                 description="JSON Web Token",
-                pattern=r'\\beyJ[a-zA-Z0-9_-]{10,}\\.[a-zA-Z0-9_-]{10,}\\.[a-zA-Z0-9_-]{10,}\\b',
+                pattern=r'\beyJ[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}\b',
                 severity="MEDIUM",
                 confidence="HIGH",
                 tags=["jwt", "token", "auth"]
@@ -203,7 +203,7 @@ class AdvancedConfigManager:
                 id="slack-token",
                 name="Slack Token",
                 description="Slack API Token",
-                pattern=r'\\bxox[baprs]-[0-9a-zA-Z-]{10,48}\\b',
+                pattern=r'\bxox[baprs]-[0-9a-zA-Z-]{10,48}\b',
                 severity="HIGH",
                 confidence="HIGH",
                 tags=["slack", "token", "api-key"]
@@ -214,7 +214,7 @@ class AdvancedConfigManager:
                 id="discord-token",
                 name="Discord Token",
                 description="Discord Bot Token",
-                pattern=r'\\b[MN][A-Za-z\\d]{23}\\.[\\w-]{6}\\.[\\w-]{27}\\b',
+                pattern=r'\b[MN][A-Za-z\d]{23}\.[\w-]{6}\.[\w-]{27}\b',
                 severity="HIGH",
                 confidence="HIGH",
                 tags=["discord", "token", "bot"]
@@ -225,10 +225,10 @@ class AdvancedConfigManager:
                 id="stripe-key",
                 name="Stripe API Key",
                 description="Stripe API Key",
-                pattern=r'\\b(sk|pk)_(test|live)_[a-zA-Z0-9]{24,}\\b',
-                severity="HIGH",
+                pattern=r'\b(sk|pk)_(test|live)_[a-zA-Z0-9]{24,}\b',
+                severity="CRITICAL",
                 confidence="HIGH",
-                tags=["stripe", "api-key", "payment"]
+                tags=["stripe", "payment", "api-key"]
             ),
             
             # Google API Keys
@@ -236,7 +236,7 @@ class AdvancedConfigManager:
                 id="google-api-key",
                 name="Google API Key",
                 description="Google API Key",
-                pattern=r'\\bAIza[0-9A-Za-z_-]{35}\\b',
+                pattern=r'\bAIza[0-9A-Za-z_-]{35}\b',
                 severity="HIGH",
                 confidence="HIGH",
                 tags=["google", "api-key"]
@@ -247,8 +247,8 @@ class AdvancedConfigManager:
                 id="openai-api-key",
                 name="OpenAI API Key",
                 description="OpenAI API Key",
-                pattern=r'\\bsk-[a-zA-Z0-9]{48}\\b',
-                severity="HIGH",
+                pattern=r'\bsk-[a-zA-Z0-9]{48}\b',
+                severity="CRITICAL",
                 confidence="HIGH",
                 tags=["openai", "api-key", "ai"]
             ),
@@ -258,11 +258,11 @@ class AdvancedConfigManager:
                 id="email-address",
                 name="Email Address",
                 description="Email address",
-                pattern=r'\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b',
+                pattern=r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
                 severity="LOW",
                 confidence="MEDIUM",
                 exclude_patterns=[
-                    r'.*@(example\\.com|test\\.com|localhost|your-domain\\.com)',
+                    r'.*@(example\.com|test\.com|localhost|your-domain\.com)',
                     r'.*@(noreply|no-reply|support|info|admin)'
                 ],
                 tags=["email", "pii"]
@@ -273,16 +273,16 @@ class AdvancedConfigManager:
                 id="ipv4-address",
                 name="IPv4 Address",
                 description="IPv4 IP Address",
-                pattern=r'\\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\b',
+                pattern=r'\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b',
                 severity="LOW",
                 confidence="MEDIUM",
                 exclude_patterns=[
-                    r'127\\.0\\.0\\.1',  # localhost
-                    r'192\\.168\\.',     # private network
-                    r'10\\.',            # private network
-                    r'172\\.(1[6-9]|2[0-9]|3[01])\\.',  # private network
-                    r'0\\.0\\.0\\.0',    # any address
-                    r'255\\.255\\.255\\.255'  # broadcast
+                    r'127\.0\.0\.1',  # localhost
+                    r'192\.168\.',     # private network
+                    r'10\.',            # private network
+                    r'172\.(1[6-9]|2[0-9]|3[01])\.',  # private network
+                    r'0\.0\.0\.0',    # any address
+                    r'255\.255\.255\.255'  # broadcast
                 ],
                 tags=["ip", "network"]
             ),
@@ -292,7 +292,7 @@ class AdvancedConfigManager:
                 id="credit-card",
                 name="Credit Card Number",
                 description="Credit card number",
-                pattern=r'\\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\\b',
+                pattern=r'\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\b',
                 severity="HIGH",
                 confidence="MEDIUM",
                 tags=["credit-card", "pii", "financial"]
@@ -303,12 +303,12 @@ class AdvancedConfigManager:
                 id="high-entropy-string",
                 name="High Entropy String",
                 description="High entropy string (potential secret)",
-                pattern=r'(?i)(?:secret|key|token|password|auth)[\'"\\s]*[:=][\'"\\s]*[A-Za-z0-9+/=]{20,}',
+                pattern=r'(?i)(?:secret|key|token|password|auth)["\s]*[:=]["\s]*[A-Za-z0-9+/=]{20,}',
                 severity="MEDIUM",
                 confidence="LOW",
                 exclude_patterns=[
-                    r'.*[\'\"](example|test|demo|sample|placeholder|your_|change_me)[\'"\\s]*',
-                    r'.*[\'\"](x{3,}|\\*{3,}|\\.{3,})[\'"\\s]*'
+                    r'.*["\']+(example|test|demo|sample|placeholder|your_|change_me)["\s]*',
+                    r'.*["\']+(x{3,}|\*{3,}|\.{3,})["\s]*'
                 ],
                 tags=["entropy", "secret", "generic"]
             )

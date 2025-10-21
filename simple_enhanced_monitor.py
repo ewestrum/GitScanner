@@ -446,14 +446,32 @@ REPOSITORY DETAILS
                     alert_data = {
                         'repository': repo_data['repository'],
                         'suspicious_files': repo_data.get('suspicious_files', []),
+                        'sensitive_content': [],  # Convert issues to sensitive_content format
                         'issues': issues,
                         'scan_time': time.strftime('%Y-%m-%d %H:%M:%S'),
+                        'files_scanned': repo_data.get('files_scanned', 0),  # Direct field for email template
+                        'risk_level': 'HIGH' if len(issues) > 0 else 'LOW',
+                        'recommendations': [
+                            'Review and remove suspicious files from repository',
+                            'Use .gitignore to prevent sensitive files from being committed',
+                            'Consider using environment variables for configuration'
+                        ] if len(issues) > 0 else [],
                         'scan_summary': {
                             'files_scanned': repo_data.get('files_scanned', 0),
                             'issues_found': len(issues),
                             'high_risk_issues': sum(1 for issue in issues if issue.get('risk_score', 0) >= 75)
                         }
                     }
+                    
+                    # Convert issues to sensitive_content format for better email display
+                    for issue in issues:
+                        alert_data['sensitive_content'].append({
+                            'pattern': issue.get('type', 'Unknown Issue'),
+                            'file_path': issue.get('file_path', ''),
+                            'line_number': 1,
+                            'severity': issue.get('severity', 'MEDIUM'),
+                            'match': '[SUSPICIOUS FILE]'
+                        })
                     
                     if self.email_notifier.send_security_alert(alert_data):
                         success_count += 1
